@@ -1,6 +1,17 @@
 [profile.default]
 src = "src"
 out = "out"
+script = 'script'
 libs = ["lib"]
+solc = '0.8.16'
+# Disables the optimizer, since gas cost is not a relevant factor.
+optimizer = false
 
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+fs_permissions = [
+    { access = "read", path = "./out/" },
+    { access = "read", path = "./script/input/" },
+    { access = "read-write", path = "./script/output/" }
+]
+
+[rpc_endpoints]
+mainnet = "${ETH_RPC_URL}"

@@ -69,29 +69,37 @@ contract UniversalClipBreakerSpellTest is DssTest {
     function _initIlksToIgnore() internal {
         bytes32[] memory ilks = ilkReg.list();
         for (uint256 i = 0; i < ilks.length; i++) {
-            address clip = ilkReg.xlip(ilks[i]);
             string memory ilkStr = string(abi.encodePacked(ilks[i]));
+            address clip = ilkReg.xlip(ilks[i]);
             if (clip == address(0)) {
                 ilksToIgnore[ilks[i]] = true;
                 emit log_named_string("Ignoring ilk | No clipper", ilkStr);
                 continue;
             }
 
-            if (WardsLike(clip).wards(clipperMom) == 0) {
-                ilksToIgnore[ilks[i]] = true;
-                emit log_named_string("Ignoring ilk | ClipperMom not authorized", ilkStr);
-                continue;
-            }
-
             try ClipLike(clip).stopped() returns (uint256 stopped) {
                 if (stopped == 3) {
                     ilksToIgnore[ilks[i]] = true;
-                    emit log_named_string("Ignoring ilk | Already stopped = 3", ilkStr);
+                    emit log_named_string("Ignoring ilk | Clip already has stopped = 3", ilkStr);
+                    continue;
                 }
             } catch {
                 // Most likely not a Clip instance.
                 ilksToIgnore[ilks[i]] = true;
                 emit log_named_string("Ignoring ilk | Not a Clip", ilkStr);
+                continue;
+            }
+
+            try WardsLike(clip).wards(clipperMom) returns (uint256 ward) {
+                if (ward == 0) {
+                    ilksToIgnore[ilks[i]] = true;
+                    emit log_named_string("Ignoring ilk | ClipperMom not authorized", ilkStr);
+                    continue;
+                }
+            } catch {
+                ilksToIgnore[ilks[i]] = true;
+                emit log_named_string("Ignoring ilk | Not a Clip", ilkStr);
+                continue;
             }
         }
     }
@@ -104,7 +112,7 @@ contract UniversalClipBreakerSpellTest is DssTest {
         _checkAllClipStoppedStatus({expected: 3});
     }
 
-    function testUnauthorizedClipperMomShouldNotRevertTheSpell() public {
+    function testUnauthorizedClipperMomShouldNotRevert() public {
         address clipEthA = ilkReg.xlip("ETH-A");
         // De-auth ClipperMom to force the error:
         stdstore.target(clipEthA).sig("wards(address)").with_key(clipperMom).checked_write(bytes32(0));
@@ -136,13 +144,9 @@ contract UniversalClipBreakerSpellTest is DssTest {
             if (ilksToIgnore[ilks[i]]) continue;
 
             address clip = ilkReg.xlip(ilks[i]);
-            if (clip == address(0)) continue;
-
-            try ClipLike(clip).stopped() returns (uint256 stopped) {
-                assertLe(stopped, maxExpected, string(abi.encodePacked("invalid stopped status: ", ilks[i])));
-            } catch {
-                // Most likely not a Clip instance.
-            }
+            assertLe(
+                ClipLike(clip).stopped(), maxExpected, string(abi.encodePacked("invalid stopped status: ", ilks[i]))
+            );
         }
     }
 
@@ -152,13 +156,7 @@ contract UniversalClipBreakerSpellTest is DssTest {
             if (ilksToIgnore[ilks[i]]) continue;
 
             address clip = ilkReg.xlip(ilks[i]);
-            if (clip == address(0)) continue;
-
-            try ClipLike(clip).stopped() returns (uint256 stopped) {
-                assertEq(stopped, expected, string(abi.encodePacked("invalid stopped status: ", ilks[i])));
-            } catch {
-                // Most likely not a Clip instance.
-            }
+            assertEq(ClipLike(clip).stopped(), expected, string(abi.encodePacked("invalid stopped status: ", ilks[i])));
         }
     }
 }

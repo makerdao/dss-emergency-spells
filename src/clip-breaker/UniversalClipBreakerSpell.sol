@@ -54,8 +54,14 @@ contract UniversalClipBreakerSpell is DssEmergencySpell {
             address clip = ilkReg.xlip(ilk);
 
             if (clip == address(0)) continue;
-            // Ignore Clip instances that have not relied on ClipperMom.
-            if (WardsLike(clip).wards(address(clipperMom)) == 0) continue;
+
+            try WardsLike(clip).wards(address(clipperMom)) returns (uint256 ward) {
+                // Ignore Clip instances that have not relied on ClipperMom.
+                if (ward != 1) continue;
+            } catch Error(string memory reason) {
+                // If the reason is empty, it means the contract is most likely not a Clip instance.
+                require(bytes(reason).length == 0, reason);
+            }
 
             try clipperMom.setBreaker(clip, BREAKER_LEVEL, BREAKER_DELAY) {
                 emit SetBreaker(ilk, clip);

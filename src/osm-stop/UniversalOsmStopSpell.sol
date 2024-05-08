@@ -17,18 +17,22 @@ pragma solidity ^0.8.16;
 
 import {DssEmergencySpell} from "../DssEmergencySpell.sol";
 
+interface IlkRegistryLike {
+    function list() external view returns (bytes32[] memory);
+}
+
 interface OsmMomLike {
     function stop(bytes32 ilk) external;
     function osms(bytes32 ilk) external view returns (address);
 }
 
-interface IlkRegistryLike {
-    function list() external view returns (bytes32[] memory);
+interface WardsLike {
+    function wards(address who) external view returns (uint256);
 }
 
 contract UniversalOsmStopSpell is DssEmergencySpell {
-    OsmMomLike public immutable osmMom = OsmMomLike(_log.getAddress("OSM_MOM"));
     IlkRegistryLike public immutable ilkReg = IlkRegistryLike(_log.getAddress("ILK_REGISTRY"));
+    OsmMomLike public immutable osmMom = OsmMomLike(_log.getAddress("OSM_MOM"));
 
     string public constant override description = "Emergency Spell | Universal OSM Stop";
 
@@ -42,14 +46,24 @@ contract UniversalOsmStopSpell is DssEmergencySpell {
     function _onSchedule() internal override {
         bytes32[] memory ilks = ilkReg.list();
         for (uint256 i = 0; i < ilks.length; i++) {
-            if (osmMom.osms(ilks[i]) != address(0)) {
-                // There might be some duplicate calls to the same OSM, however they are idempotent.
-                try OsmMomLike(osmMom).stop(ilks[i]) {
-                    emit Stop(ilks[i]);
-                } catch Error(string memory reason) {
-                    // Ignore any failing calls to `osmMom.stop` with no error being returned.
-                    require(bytes(reason).length == 0, reason);
-                }
+            address osm = osmMom.osms(ilks[i]);
+
+            if (osm == address(0)) continue;
+
+            try WardsLike(osm).wards(address(osmMom)) returns (uint256 ward) {
+                // Ignore Osm instances that have not relied on OsmMom.
+                if (ward != 1) continue;
+            } catch Error(string memory reason) {
+                // If the reason is empty, it means the contract is most likely not an OSM instance.
+                require(bytes(reason).length == 0, reason);
+            }
+
+            // There might be some duplicate calls to the same OSM, however they are idempotent.
+            try OsmMomLike(osmMom).stop(ilks[i]) {
+                emit Stop(ilks[i]);
+            } catch Error(string memory reason) {
+                // Ignore any failing calls to `osmMom.stop` with no revert reason.
+                require(bytes(reason).length == 0, reason);
             }
         }
     }

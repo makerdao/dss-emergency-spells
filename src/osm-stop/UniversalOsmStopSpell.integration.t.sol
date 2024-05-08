@@ -29,6 +29,11 @@ interface OsmLike {
     function osms(bytes32 ilk) external view returns (address);
 }
 
+
+interface WardsLike {
+    function wards(address who) external view returns (uint256);
+}
+
 interface IlkRegistryLike {
     function list() external view returns (bytes32[] memory);
     function pip(bytes32 ilk) external view returns (address);
@@ -42,8 +47,9 @@ contract UniversalOsmStopSpellTest is DssTest {
     address chief;
     OsmMomLike osmMom;
     IlkRegistryLike ilkReg;
-    OsmLike osm;
     DssEmergencySpellLike spell;
+
+    mapping(bytes32 => bool) ilksToIgnore;
 
     function setUp() public {
         vm.createSelectFork("mainnet");
@@ -57,7 +63,48 @@ contract UniversalOsmStopSpellTest is DssTest {
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
 
+        _initIlksToIgnore();
+
         vm.makePersistent(chief);
+    }
+
+    /// @dev Ignore any of:
+    function _initIlksToIgnore() internal {
+        bytes32[] memory ilks = ilkReg.list();
+        for (uint256 i = 0; i < ilks.length; i++) {
+            string memory ilkStr = string(abi.encodePacked(ilks[i]));
+            address osm = ilkReg.pip(ilks[i]);
+            if (osm == address(0)) {
+                ilksToIgnore[ilks[i]] = true;
+                emit log_named_string("Ignoring ilk | No OSM", ilkStr);
+                continue;
+            }
+
+            try OsmLike(osm).stopped() returns (uint256 stopped) {
+                if (stopped == 1) {
+                    ilksToIgnore[ilks[i]] = true;
+                    emit log_named_string("Ignoring ilk | OSM already stopped", ilkStr);
+                    continue;
+                }
+            } catch {
+                // Most likely not an OSM instance.
+                ilksToIgnore[ilks[i]] = true;
+                emit log_named_string("Ignoring ilk | Not an OSM", ilkStr);
+                continue;
+            }
+
+            try WardsLike(osm).wards(address(osmMom)) returns (uint256 ward) {
+                if (ward == 0) {
+                    ilksToIgnore[ilks[i]] = true;
+                    emit log_named_string("Ignoring ilk | OsmMom not authorized", ilkStr);
+                    continue;
+                }
+            } catch {
+                ilksToIgnore[ilks[i]] = true;
+                emit log_named_string("Ignoring ilk | Not an OSM", ilkStr);
+                continue;
+            }
+        }
     }
 
     function testUniversalOracleStopOnSchedule() public {
@@ -66,6 +113,21 @@ contract UniversalOsmStopSpellTest is DssTest {
         spell.schedule();
 
         _checkAllOsmStoppedStatus({expected: 1});
+    }
+
+    function testUnauthorizedOsmMomShouldNotRevert() public {
+        address pipEth = ilkReg.pip("ETH-A");
+        // De-auth OsmMom to force the error:
+        stdstore.target(pipEth).sig("wards(address)").with_key(address(osmMom)).checked_write(bytes32(0));
+        // Updates the list of ilks to be ignored.
+        _initIlksToIgnore();
+
+        _checkAllOsmStoppedStatus({expected: 0});
+
+        DssEmergencySpellLike(spell).schedule();
+
+        _checkAllOsmStoppedStatus({expected: 1});
+        assertEq(OsmLike(pipEth).stopped(), 0, "ETH-A pip was not ignored");
     }
 
     function testRevertUniversalOracleStopWhenItDoesNotHaveTheHat() public {
@@ -79,17 +141,14 @@ contract UniversalOsmStopSpellTest is DssTest {
         _checkAllOsmStoppedStatus({expected: 0});
     }
 
+
     function _checkAllOsmStoppedStatus(uint256 expected) internal view {
         bytes32[] memory ilks = ilkReg.list();
         for (uint256 i = 0; i < ilks.length; i++) {
-            if (osmMom.osms(ilks[i]) != address(0)) {
-                OsmLike pip = OsmLike(ilkReg.pip(ilks[i]));
-                try pip.stopped() returns (uint256 stopped) {
-                    assertEq(stopped, expected, string(abi.encodePacked("invalid stopped state: ", ilks[i])));
-                } catch {
-                    // Most likely not an OSM.
-                }
-            }
+            if (ilksToIgnore[ilks[i]]) continue;
+
+            address pip = ilkReg.pip(ilks[i]);
+            assertEq(OsmLike(pip).stopped(), expected, string(abi.encodePacked("invalid stopped status: ", ilks[i])));
         }
     }
 }

@@ -18,7 +18,7 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD, GodMode} from "dss-test/DssTest.sol";
 import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {SingleOsmStopSpell} from "./SingleOsmStopSpell.sol";
+import {SingleOsmStopFactory} from "./SingleOsmStopSpell.sol";
 
 interface OsmMomLike {
     function osms(bytes32) external view returns (address);
@@ -28,7 +28,7 @@ interface OsmLike {
     function stopped() external view returns (uint256);
 }
 
-contract SingleOsmStopTest is DssTest {
+contract SingleOsmStopSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
@@ -37,6 +37,7 @@ contract SingleOsmStopTest is DssTest {
     bytes32 ilk = "ETH-A";
     OsmMomLike osmMom;
     OsmLike osm;
+    SingleOsmStopFactory factory;
     DssEmergencySpellLike spell;
 
     function setUp() public {
@@ -47,7 +48,8 @@ contract SingleOsmStopTest is DssTest {
         chief = dss.chainlog.getAddress("MCD_ADM");
         osmMom = OsmMomLike(dss.chainlog.getAddress("OSM_MOM"));
         osm = OsmLike(osmMom.osms(ilk));
-        spell = new SingleOsmStopSpell(ilk);
+        factory = new SingleOsmStopFactory();
+        spell = DssEmergencySpellLike(factory.deploy(ilk));
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
 

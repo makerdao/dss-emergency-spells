@@ -17,11 +17,12 @@ pragma solidity ^0.8.16;
 
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD, GodMode} from "dss-test/DssTest.sol";
-import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
 import {UniversalClipBreakerSpell} from "./UniversalClipBreakerSpell.sol";
 
 interface IlkRegistryLike {
+    function count() external view returns (uint256);
     function list() external view returns (bytes32[] memory);
+    function list(uint256 start, uint256 end) external view returns (bytes32[] memory);
     function xlip(bytes32 ilk) external view returns (address);
 }
 
@@ -41,7 +42,7 @@ contract UniversalClipBreakerSpellTest is DssTest {
     address chief;
     IlkRegistryLike ilkReg;
     address clipperMom;
-    address spell;
+    UniversalClipBreakerSpell spell;
 
     mapping(bytes32 => bool) ilksToIgnore;
 
@@ -53,7 +54,7 @@ contract UniversalClipBreakerSpellTest is DssTest {
         chief = dss.chainlog.getAddress("MCD_ADM");
         ilkReg = IlkRegistryLike(dss.chainlog.getAddress("ILK_REGISTRY"));
         clipperMom = dss.chainlog.getAddress("CLIPPER_MOM");
-        spell = address(new UniversalClipBreakerSpell());
+        spell = new UniversalClipBreakerSpell();
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
 
@@ -104,12 +105,35 @@ contract UniversalClipBreakerSpellTest is DssTest {
         }
     }
 
-    function testUniversalOracleStopOnSchedule() public {
-        _checkAllClipMaxStoppedStatus({maxExpected: 2});
+    function testUniversalClipBreakerOnSchedule() public {
+        _checkClipMaxStoppedStatus({ilks: ilkReg.list(), maxExpected: 2});
 
-        DssEmergencySpellLike(spell).schedule();
+        spell.schedule();
 
-        _checkAllClipStoppedStatus({expected: 3});
+        _checkClipStoppedStatus({ilks: ilkReg.list(), expected: 3});
+    }
+
+    function testUniversalClipBreakerInBatches_Fuzz(uint256 batchSize) public {
+        batchSize = bound(batchSize, 1, type(uint128).max);
+        uint256 count = ilkReg.count();
+        uint256 maxEnd = count - 1;
+        uint256 start = 0;
+        // End is inclusive, so we need to subtract 1
+        uint256 end = start + batchSize - 1;
+
+        _checkClipMaxStoppedStatus({ilks: ilkReg.list(), maxExpected: 2});
+
+        while (start < count) {
+            spell.setBreakerInBatch(start, end);
+
+            _checkClipStoppedStatus({ilks: ilkReg.list(start, end < maxEnd ? end : maxEnd), expected: 3});
+
+            start += batchSize;
+            end += batchSize;
+        }
+
+        // Sanity check: the test iterated over the entire ilk registry.
+        _checkClipStoppedStatus({ilks: ilkReg.list(), expected: 3});
     }
 
     function testUnauthorizedClipperMomShouldNotRevert() public {
@@ -119,27 +143,26 @@ contract UniversalClipBreakerSpellTest is DssTest {
         // Updates the list of ilks to be ignored.
         _initIlksToIgnore();
 
-        _checkAllClipMaxStoppedStatus({maxExpected: 2});
+        _checkClipMaxStoppedStatus({ilks: ilkReg.list(), maxExpected: 2});
 
-        DssEmergencySpellLike(spell).schedule();
+        spell.schedule();
 
-        _checkAllClipStoppedStatus({expected: 3});
+        _checkClipStoppedStatus({ilks: ilkReg.list(), expected: 3});
         assertEq(ClipLike(clipEthA).stopped(), 0, "ETH-A Clip was not ignored");
     }
 
     function testRevertUniversalClipBreakerWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
-        _checkAllClipMaxStoppedStatus({maxExpected: 2});
+        _checkClipMaxStoppedStatus({ilks: ilkReg.list(), maxExpected: 2});
 
         vm.expectRevert();
-        DssEmergencySpellLike(spell).schedule();
+        spell.schedule();
 
-        _checkAllClipMaxStoppedStatus({maxExpected: 2});
+        _checkClipMaxStoppedStatus({ilks: ilkReg.list(), maxExpected: 2});
     }
 
-    function _checkAllClipMaxStoppedStatus(uint256 maxExpected) internal view {
-        bytes32[] memory ilks = ilkReg.list();
+    function _checkClipMaxStoppedStatus(bytes32[] memory ilks, uint256 maxExpected) internal view {
         for (uint256 i = 0; i < ilks.length; i++) {
             if (ilksToIgnore[ilks[i]]) continue;
 
@@ -150,8 +173,7 @@ contract UniversalClipBreakerSpellTest is DssTest {
         }
     }
 
-    function _checkAllClipStoppedStatus(uint256 expected) internal view {
-        bytes32[] memory ilks = ilkReg.list();
+    function _checkClipStoppedStatus(bytes32[] memory ilks, uint256 expected) internal view {
         for (uint256 i = 0; i < ilks.length; i++) {
             if (ilksToIgnore[ilks[i]]) continue;
 

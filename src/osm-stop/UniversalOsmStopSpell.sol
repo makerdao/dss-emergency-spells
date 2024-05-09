@@ -38,10 +38,10 @@ contract UniversalOsmStopSpell is DssEmergencySpell {
 
     string public constant override description = "Emergency Spell | Universal OSM Stop";
 
-    event Stop(bytes32 ilk);
+    event Stop(bytes32 indexed ilk, address indexed osm);
 
     /**
-     * @notice Stop all OSMs that can be found through the ilk registry.
+     * @notice Stop, when possible, all OSMs that can be found through the ilk registry.
      */
     function _emeregencyActions() internal override {
         bytes32[] memory ilks = ilkReg.list();
@@ -49,7 +49,7 @@ contract UniversalOsmStopSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice Stop all OSM in the batch.
+     * @notice Stop all OSMs in the batch.
      * @dev This is an escape hatch to prevent this spell from being blocked in case it would hit the block gas limit.
      *      In case `end` is greater than the ilk registry length, the iteration will be automatically capped.
      * @param start The index to start the iteration (inclusive).
@@ -62,7 +62,7 @@ contract UniversalOsmStopSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice Stop all OSMs that can be found from the `ilks` list.
+     * @notice Stop, when possible, all OSMs that can be found from the `ilks` list.
      * @param ilks The list of ilks to consider.
      */
     function _doStop(bytes32[] memory ilks) internal {
@@ -81,7 +81,7 @@ contract UniversalOsmStopSpell is DssEmergencySpell {
 
             // There might be some duplicate calls to the same OSM, however they are idempotent.
             try OsmMomLike(osmMom).stop(ilks[i]) {
-                emit Stop(ilks[i]);
+                emit Stop(ilks[i], osm);
             } catch Error(string memory reason) {
                 // Ignore any failing calls to `osmMom.stop` with no revert reason.
                 require(bytes(reason).length == 0, reason);

@@ -18,6 +18,7 @@ pragma solidity ^0.8.16;
 import {DssEmergencySpell} from "../DssEmergencySpell.sol";
 
 interface OsmMomLike {
+    function osms(bytes32 ilk) external view returns (address);
     function stop(bytes32 ilk) external;
 }
 
@@ -25,7 +26,7 @@ contract SingleOsmStopSpell is DssEmergencySpell {
     OsmMomLike public immutable osmMom = OsmMomLike(_log.getAddress("OSM_MOM"));
     bytes32 public immutable ilk;
 
-    event Stop();
+    event Stop(address indexed osm);
 
     constructor(bytes32 _ilk) {
         ilk = _ilk;
@@ -37,7 +38,7 @@ contract SingleOsmStopSpell is DssEmergencySpell {
 
     function _emeregencyActions() internal override {
         osmMom.stop(ilk);
-        emit Stop();
+        emit Stop(osmMom.osms(ilk));
     }
 }
 

@@ -57,6 +57,8 @@ contract SingleOsmStopTest is DssTest {
     function testOracleStopOnSchedule() public {
         assertEq(osm.stopped(), 0, "before: oracle already frozen");
 
+        vm.expectEmit(true, true, true, true);
+        emit Stop(address(osm));
         spell.schedule();
 
         assertEq(osm.stopped(), 1, "after: oracle not frozen");
@@ -72,4 +74,6 @@ contract SingleOsmStopTest is DssTest {
 
         assertEq(osm.stopped(), 0, "after: oracle frozen unexpectedly");
     }
+
+    event Stop(address indexed osm);
 }

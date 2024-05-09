@@ -42,17 +42,13 @@ abstract contract DssEmergencySpell is DssEmergencySpellLike {
     uint256 public constant eta = 0;
     bytes public constant sig = "";
     bool public constant done = false;
+    uint256 public constant expiration = type(uint256).max;
     address public immutable action = address(this);
     bytes32 public immutable tag = keccak256(abi.encodePacked(address(this)));
     address public immutable pause = ChainlogLike(log).getAddress("MCD_PAUSE");
-    uint256 public immutable expiration;
 
     // @notice Office Hours is always `false` for emergency spells.
     bool public constant officeHours = false;
-
-    constructor(uint256 _expiration) {
-        expiration = _expiration;
-    }
 
     function nextCastTime() external virtual view returns (uint256) {
         return block.timestamp;
@@ -63,8 +59,7 @@ abstract contract DssEmergencySpell is DssEmergencySpellLike {
      * @dev This function maintains the name for compatibility with regular spells, however nothing is actually being
      *      scheduled. Emergency spell take affect immediately, so there is no need to call `pause.plot()`.
      */
-    function schedule() external virtual {
-        require(block.timestamp <= expiration, "dss-emergency-spell/expired");
+    function schedule() external {
         _onSchedule();
     }
 
@@ -73,5 +68,5 @@ abstract contract DssEmergencySpell is DssEmergencySpellLike {
     /**
      * @notice This function is a no-op. It exists only to keep interface compatibility with regular spells.
      */
-    function cast() external virtual {}
+    function cast() external {}
 }

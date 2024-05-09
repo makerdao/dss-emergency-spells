@@ -27,10 +27,7 @@ contract SingleOsmStopSpell is DssEmergencySpell {
 
     event Stop();
 
-    constructor(bytes32 _ilk)
-        // In practice, this spell would never expire
-        DssEmergencySpell(type(uint256).max)
-    {
+    constructor(bytes32 _ilk) {
         ilk = _ilk;
     }
 

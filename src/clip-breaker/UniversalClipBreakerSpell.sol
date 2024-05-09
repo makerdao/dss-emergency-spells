@@ -42,11 +42,6 @@ contract UniversalClipBreakerSpell is DssEmergencySpell {
 
     event SetBreaker(bytes32 indexed ilk, address indexed clip);
 
-    constructor()
-        // In practice, this spell would never expire
-        DssEmergencySpell(type(uint256).max)
-    {}
-
     function _onSchedule() internal override {
         bytes32[] memory ilks = ilkReg.list();
         for (uint256 i = 0; i < ilks.length; i++) {

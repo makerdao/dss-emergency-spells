@@ -29,13 +29,14 @@ interface OsmLike {
     function osms(bytes32 ilk) external view returns (address);
 }
 
-
 interface WardsLike {
     function wards(address who) external view returns (uint256);
 }
 
 interface IlkRegistryLike {
+    function count() external view returns (uint256);
     function list() external view returns (bytes32[] memory);
+    function list(uint256 start, uint256 end) external view returns (bytes32[] memory);
     function pip(bytes32 ilk) external view returns (address);
 }
 
@@ -47,7 +48,7 @@ contract UniversalOsmStopSpellTest is DssTest {
     address chief;
     OsmMomLike osmMom;
     IlkRegistryLike ilkReg;
-    DssEmergencySpellLike spell;
+    UniversalOsmStopSpell spell;
 
     mapping(bytes32 => bool) ilksToIgnore;
 
@@ -112,11 +113,33 @@ contract UniversalOsmStopSpellTest is DssTest {
     }
 
     function testUniversalOracleStopOnSchedule() public {
-        _checkAllOsmStoppedStatus({expected: 0});
+        _checkOsmStoppedStatus({ilks: ilkReg.list(), expected: 0});
 
         spell.schedule();
 
-        _checkAllOsmStoppedStatus({expected: 1});
+        _checkOsmStoppedStatus({ilks: ilkReg.list(), expected: 1});
+    }
+
+    function testUniversalOracleStopInBatches_Fuzz(uint256 batchSize) public {
+        batchSize = bound(batchSize, 1, type(uint128).max);
+        uint256 count = ilkReg.count();
+        uint256 maxEnd = count - 1;
+        uint256 start = 0;
+        // End is inclusive, so we need to subtract 1
+        uint256 end = start + batchSize - 1;
+
+        _checkOsmStoppedStatus({ilks: ilkReg.list(), expected: 0});
+
+        while (start < count) {
+            spell.stopBatch(start, end);
+            _checkOsmStoppedStatus({ilks: ilkReg.list(start, end < maxEnd ? end : maxEnd), expected: 1});
+
+            start += batchSize;
+            end += batchSize;
+        }
+
+        // Sanity check: the test iterated over the entire ilk registry.
+        _checkOsmStoppedStatus({ilks: ilkReg.list(), expected: 1});
     }
 
     function testUnauthorizedOsmMomShouldNotRevert() public {
@@ -126,28 +149,26 @@ contract UniversalOsmStopSpellTest is DssTest {
         // Updates the list of ilks to be ignored.
         _initIlksToIgnore();
 
-        _checkAllOsmStoppedStatus({expected: 0});
+        _checkOsmStoppedStatus({ilks: ilkReg.list(), expected: 0});
 
-        DssEmergencySpellLike(spell).schedule();
+        spell.schedule();
 
-        _checkAllOsmStoppedStatus({expected: 1});
+        _checkOsmStoppedStatus({ilks: ilkReg.list(), expected: 1});
         assertEq(OsmLike(pipEth).stopped(), 0, "ETH-A pip was not ignored");
     }
 
     function testRevertUniversalOracleStopWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
-        _checkAllOsmStoppedStatus({expected: 0});
+        _checkOsmStoppedStatus({ilks: ilkReg.list(), expected: 0});
 
         vm.expectRevert();
         spell.schedule();
 
-        _checkAllOsmStoppedStatus({expected: 0});
+        _checkOsmStoppedStatus({ilks: ilkReg.list(), expected: 0});
     }
 
-
-    function _checkAllOsmStoppedStatus(uint256 expected) internal view {
-        bytes32[] memory ilks = ilkReg.list();
+    function _checkOsmStoppedStatus(bytes32[] memory ilks, uint256 expected) internal view {
         for (uint256 i = 0; i < ilks.length; i++) {
             if (ilksToIgnore[ilks[i]]) continue;
 

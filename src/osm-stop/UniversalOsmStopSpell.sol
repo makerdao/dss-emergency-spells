@@ -18,7 +18,9 @@ pragma solidity ^0.8.16;
 import {DssEmergencySpell} from "../DssEmergencySpell.sol";
 
 interface IlkRegistryLike {
+    function count() external view returns (uint256);
     function list() external view returns (bytes32[] memory);
+    function list(uint256 start, uint256 end) external view returns (bytes32[] memory);
 }
 
 interface OsmMomLike {
@@ -38,8 +40,32 @@ contract UniversalOsmStopSpell is DssEmergencySpell {
 
     event Stop(bytes32 ilk);
 
+    /**
+     * @notice Stop all OSMs that can be found through the ilk registry.
+     */
     function _emeregencyActions() internal override {
         bytes32[] memory ilks = ilkReg.list();
+        _doStop(ilks);
+    }
+
+    /**
+     * @notice Stop all OSM in the batch.
+     * @dev This is an escape hatch to prevent this spell from being blocked in case it would hit the block gas limit.
+     *      In case `end` is greater than the ilk registry length, the iteration will be automatically capped.
+     * @param start The index to start the iteration (inclusive).
+     * @param end The index to stop the iteration (inclusive).
+     */
+    function stopBatch(uint256 start, uint256 end) external {
+        uint256 maxEnd = ilkReg.count() - 1;
+        bytes32[] memory ilks = ilkReg.list(start, end < maxEnd ? end : maxEnd);
+        _doStop(ilks);
+    }
+
+    /**
+     * @notice Stop all OSMs that can be found from the `ilks` list.
+     * @param ilks The list of ilks to consider.
+     */
+    function _doStop(bytes32[] memory ilks) internal {
         for (uint256 i = 0; i < ilks.length; i++) {
             address osm = osmMom.osms(ilks[i]);
 

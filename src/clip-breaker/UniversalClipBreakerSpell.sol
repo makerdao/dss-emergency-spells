@@ -42,7 +42,7 @@ contract UniversalClipBreakerSpell is DssEmergencySpell {
 
     event SetBreaker(bytes32 indexed ilk, address indexed clip);
 
-    function _onSchedule() internal override {
+    function _emeregencyActions() internal override {
         bytes32[] memory ilks = ilkReg.list();
         for (uint256 i = 0; i < ilks.length; i++) {
             bytes32 ilk = ilks[i];

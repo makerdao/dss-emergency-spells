@@ -38,7 +38,7 @@ contract UniversalOsmStopSpell is DssEmergencySpell {
 
     event Stop(bytes32 ilk);
 
-    function _onSchedule() internal override {
+    function _emeregencyActions() internal override {
         bytes32[] memory ilks = ilkReg.list();
         for (uint256 i = 0; i < ilks.length; i++) {
             address osm = osmMom.osms(ilks[i]);

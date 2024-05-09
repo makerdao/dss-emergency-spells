@@ -60,10 +60,10 @@ abstract contract DssEmergencySpell is DssEmergencySpellLike {
      *      scheduled. Emergency spell take affect immediately, so there is no need to call `pause.plot()`.
      */
     function schedule() external {
-        _onSchedule();
+        _emeregencyActions();
     }
 
-    function _onSchedule() internal virtual;
+    function _emeregencyActions() internal virtual;
 
     /**
      * @notice This function is a no-op. It exists only to keep interface compatibility with regular spells.

@@ -69,6 +69,10 @@ contract UniversalOsmStopSpellTest is DssTest {
     }
 
     /// @dev Ignore any of:
+    ///      - OSM does not exist for the ilk.
+    ///      - OSM is already stopped.
+    ///      - The `pip` for the ilk is not an OSM instance.
+    ///      - OSMMom is not authorized in the OSM instance.
     function _initIlksToIgnore() internal {
         bytes32[] memory ilks = ilkReg.list();
         for (uint256 i = 0; i < ilks.length; i++) {

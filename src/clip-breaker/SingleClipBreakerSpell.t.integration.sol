@@ -64,23 +64,27 @@ contract SingleClipBreakerSpellTest is DssTest {
 
     function testClipBreakerOnSchedule() public {
         assertEq(clip.stopped(), 0, "before: clip already stopped");
+        assertFalse(spell.done(), "before: spell already done");
 
         vm.expectEmit(true, true, true, true);
         emit SetBreaker(address(clip));
         spell.schedule();
 
         assertEq(clip.stopped(), 3, "after: clip not stopped");
+        assertTrue(spell.done(), "after: spell not done");
     }
 
     function testRevertClipBreakerWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
         assertEq(clip.stopped(), 0, "before: clip already stopped");
+        assertFalse(spell.done(), "before: spell already done");
 
         vm.expectRevert();
         spell.schedule();
 
         assertEq(clip.stopped(), 0, "after: clip stopped unexpectedly");
+        assertFalse(spell.done(), "after: spell done unexpectedly");
     }
 
     event SetBreaker(address indexed clip);

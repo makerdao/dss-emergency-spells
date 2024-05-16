@@ -19,6 +19,14 @@ import {DssEmergencySpell} from "../DssEmergencySpell.sol";
 
 interface LineMomLike {
     function wipe(bytes32 ilk) external returns (uint256);
+    function autoLine() external view returns (address);
+}
+
+interface AutoLineLike {
+    function ilks(bytes32 ilk)
+        external
+        view
+        returns (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc);
 }
 
 contract SingleAutoLineWipeSpell is DssEmergencySpell {
@@ -38,6 +46,17 @@ contract SingleAutoLineWipeSpell is DssEmergencySpell {
     function _emeregencyActions() internal override {
         uint256 prevLine = lineMom.wipe(ilk);
         emit Wipe(ilk, prevLine);
+    }
+
+    /**
+     * @notice Return whether the spell is done or not.
+     * @dev Check if the ilk has been wiped from auto-line.
+     */
+    function done() external view returns (bool) {
+        (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc) =
+            AutoLineLike(lineMom.autoLine()).ilks(ilk);
+
+        return maxLine == 0 && gap == 0 && ttl == 0 && last == 0 && lastInc == 0;
     }
 }
 

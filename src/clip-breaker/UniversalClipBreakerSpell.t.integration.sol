@@ -107,10 +107,12 @@ contract UniversalClipBreakerSpellTest is DssTest {
 
     function testUniversalClipBreakerOnSchedule() public {
         _checkClipMaxStoppedStatus({ilks: ilkReg.list(), maxExpected: 2});
+        assertFalse(spell.done(), "before: spell already done");
 
         spell.schedule();
 
         _checkClipStoppedStatus({ilks: ilkReg.list(), expected: 3});
+        assertTrue(spell.done(), "after: spell not done");
     }
 
     function testUniversalClipBreakerInBatches_Fuzz(uint256 batchSize) public {
@@ -155,11 +157,13 @@ contract UniversalClipBreakerSpellTest is DssTest {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
         _checkClipMaxStoppedStatus({ilks: ilkReg.list(), maxExpected: 2});
+        assertFalse(spell.done(), "before: spell already done");
 
         vm.expectRevert();
         spell.schedule();
 
         _checkClipMaxStoppedStatus({ilks: ilkReg.list(), maxExpected: 2});
+        assertFalse(spell.done(), "false: spell done unexpectedly");
     }
 
     function _checkClipMaxStoppedStatus(bytes32[] memory ilks, uint256 maxExpected) internal view {

@@ -22,6 +22,10 @@ interface OsmMomLike {
     function stop(bytes32 ilk) external;
 }
 
+interface OsmLike {
+    function stopped() external view returns (uint256);
+}
+
 contract SingleOsmStopSpell is DssEmergencySpell {
     OsmMomLike public immutable osmMom = OsmMomLike(_log.getAddress("OSM_MOM"));
     bytes32 public immutable ilk;
@@ -39,6 +43,14 @@ contract SingleOsmStopSpell is DssEmergencySpell {
     function _emeregencyActions() internal override {
         osmMom.stop(ilk);
         emit Stop(osmMom.osms(ilk));
+    }
+
+    /**
+     * @notice Return whether the spell is done or not.
+     * @dev Check if the OSM instance is stopped.
+     */
+    function done() external view returns (bool) {
+        return OsmLike(osmMom.osms(ilk)).stopped() == 1;
     }
 }
 

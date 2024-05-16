@@ -28,8 +28,9 @@ interface ClipperMomLike {
     function setBreaker(address clip, uint256 level, uint256 delay) external;
 }
 
-interface WardsLike {
+interface ClipLike {
     function wards(address who) external view returns (uint256);
+    function stopped() external view returns (uint256);
 }
 
 contract UniversalClipBreakerSpell is DssEmergencySpell {
@@ -76,7 +77,7 @@ contract UniversalClipBreakerSpell is DssEmergencySpell {
 
             if (clip == address(0)) continue;
 
-            try WardsLike(clip).wards(address(clipperMom)) returns (uint256 ward) {
+            try ClipLike(clip).wards(address(clipperMom)) returns (uint256 ward) {
                 // Ignore Clip instances that have not relied on ClipperMom.
                 if (ward != 1) continue;
             } catch Error(string memory reason) {
@@ -91,5 +92,35 @@ contract UniversalClipBreakerSpell is DssEmergencySpell {
                 require(bytes(reason).length == 0, reason);
             }
         }
+    }
+
+    /**
+     * @notice Return whether the spell is done or not.
+     * @dev Check if all possible Clip instances from the ilk registry have stopped = 3.
+     */
+    function done() external view returns (bool) {
+        bytes32[] memory ilks = ilkReg.list();
+        for (uint256 i = 0; i < ilks.length; i++) {
+            bytes32 ilk = ilks[i];
+            address clip = ilkReg.xlip(ilk);
+
+            if (clip == address(0)) continue;
+
+            try ClipLike(clip).wards(address(clipperMom)) returns (uint256 ward) {
+                // Ignore Clip instances that have not relied on ClipperMom.
+                if (ward != 1) continue;
+            } catch {
+                // Ignore any errors.
+                continue;
+            }
+
+            try ClipLike(clip).stopped() returns (uint256 stopped) {
+                if (stopped != BREAKER_LEVEL) return false;
+            } catch {
+                // Ignore any errors.
+                continue;
+            }
+        }
+        return true;
     }
 }

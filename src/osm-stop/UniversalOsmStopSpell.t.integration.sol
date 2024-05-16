@@ -113,10 +113,12 @@ contract UniversalOsmStopSpellTest is DssTest {
 
     function testUniversalOracleStopOnSchedule() public {
         _checkOsmStoppedStatus({ilks: ilkReg.list(), expected: 0});
+        assertFalse(spell.done(), "before: spell already done");
 
         spell.schedule();
 
         _checkOsmStoppedStatus({ilks: ilkReg.list(), expected: 1});
+        assertTrue(spell.done(), "after: spell not done");
     }
 
     function testUniversalOracleStopInBatches_Fuzz(uint256 batchSize) public {

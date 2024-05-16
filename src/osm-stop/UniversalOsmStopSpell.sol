@@ -28,6 +28,10 @@ interface OsmMomLike {
     function osms(bytes32 ilk) external view returns (address);
 }
 
+interface OsmLike {
+    function stopped() external view returns (uint256);
+}
+
 interface WardsLike {
     function wards(address who) external view returns (uint256);
 }
@@ -87,5 +91,35 @@ contract UniversalOsmStopSpell is DssEmergencySpell {
                 require(bytes(reason).length == 0, reason);
             }
         }
+    }
+
+    /**
+     * @notice Return whether the spell is done or not.
+     * @dev Check if all possible OSM instances from the ilk registry are stopped.
+     */
+    function done() external view returns (bool) {
+        bytes32[] memory ilks = ilkReg.list();
+        for (uint256 i = 0; i < ilks.length; i++) {
+            address osm = osmMom.osms(ilks[i]);
+
+            if (osm == address(0)) continue;
+
+            try WardsLike(osm).wards(address(osmMom)) returns (uint256 ward) {
+                // Ignore Osm instances that have not relied on OsmMom.
+                if (ward != 1) continue;
+            } catch {
+                // Ignore any errors.
+                continue;
+            }
+
+            try OsmLike(osm).stopped() returns (uint256 stopped) {
+                // If any of the OSMs that match the conditions is not stopped, the spell was not executed yet.
+                if (stopped == 0) return false;
+            } catch {
+                // Ignore any errors.
+                continue;
+            }
+        }
+        return true;
     }
 }

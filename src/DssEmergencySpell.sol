@@ -41,7 +41,6 @@ abstract contract DssEmergencySpell is DssEmergencySpellLike {
     address public constant log = address(_log);
     uint256 public constant eta = 0;
     bytes public constant sig = "";
-    bool public constant done = false;
     uint256 public constant expiration = type(uint256).max;
     address public immutable action = address(this);
     bytes32 public immutable tag = keccak256(abi.encodePacked(address(this)));

@@ -56,25 +56,29 @@ contract SingleOsmStopSpellTest is DssTest {
         vm.makePersistent(chief);
     }
 
-    function testOracleStopOnSchedule() public {
+    function testOsmStopOnSchedule() public {
         assertEq(osm.stopped(), 0, "before: oracle already frozen");
+        assertFalse(spell.done(), "before: spell already done");
 
         vm.expectEmit(true, true, true, true);
         emit Stop(address(osm));
         spell.schedule();
 
         assertEq(osm.stopped(), 1, "after: oracle not frozen");
+        assertTrue(spell.done(), "after: spell not done");
     }
 
-    function testRevertOracleStopWhenItDoesNotHaveTheHat() public {
+    function testRevertOsmStopWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
         assertEq(osm.stopped(), 0, "before: oracle already frozen");
+        assertFalse(spell.done(), "before: spell already done");
 
         vm.expectRevert();
         spell.schedule();
 
         assertEq(osm.stopped(), 0, "after: oracle frozen unexpectedly");
+        assertFalse(spell.done(), "after: spell done unexpectedly");
     }
 
     event Stop(address indexed osm);

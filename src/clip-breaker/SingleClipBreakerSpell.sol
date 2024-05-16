@@ -21,6 +21,10 @@ interface ClipperMomLike {
     function setBreaker(address clip, uint256 level, uint256 delay) external;
 }
 
+interface ClipLike {
+    function stopped() external view returns (uint256);
+}
+
 interface IlkRegistryLike {
     function xlip(bytes32 ilk) external view returns (address);
 }
@@ -49,6 +53,14 @@ contract SingleClipBreakerSpell is DssEmergencySpell {
         address clip = ilkReg.xlip(ilk);
         clipperMom.setBreaker(clip, BREAKER_LEVEL, BREAKER_DELAY);
         emit SetBreaker(clip);
+    }
+
+    /**
+     * @notice Return whether the spell is done or not.
+     * @dev Check if the Clip instance has stopped = 3.
+     */
+    function done() external view returns (bool) {
+        return ClipLike(ilkReg.xlip(ilk)).stopped() == BREAKER_LEVEL;
     }
 }
 

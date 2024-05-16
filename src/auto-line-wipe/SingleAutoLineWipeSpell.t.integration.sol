@@ -59,6 +59,7 @@ contract SingleAutoLineWipeSpellTest is DssTest {
         (uint256 pmaxLine, uint256 pgap,,,) = autoLine.ilks(ilk);
         assertGt(pmaxLine, 0, "before: auto-line already wiped");
         assertGt(pgap, 0, "before: auto-line already wiped");
+        assertFalse(spell.done(), "before: spell already done");
 
         vm.expectEmit(true, true, true, false);
         // Ignore prevLine for now
@@ -68,6 +69,7 @@ contract SingleAutoLineWipeSpellTest is DssTest {
         (uint256 maxLine, uint256 gap,,,) = autoLine.ilks(ilk);
         assertEq(maxLine, 0, "after: auto-line not wiped (maxLine)");
         assertEq(gap, 0, "after: auto-line not wiped (gap)");
+        assertTrue(spell.done(), "after: spell not done");
     }
 
     function testRevertAutoLineWipeWhenItDoesNotHaveTheHat() public {
@@ -76,6 +78,7 @@ contract SingleAutoLineWipeSpellTest is DssTest {
         (uint256 pmaxLine, uint256 pgap,,,) = autoLine.ilks(ilk);
         assertGt(pmaxLine, 0, "before: auto-line already wiped");
         assertGt(pgap, 0, "before: auto-line already wiped");
+        assertFalse(spell.done(), "before: spell already done");
 
         vm.expectRevert();
         spell.schedule();
@@ -83,6 +86,7 @@ contract SingleAutoLineWipeSpellTest is DssTest {
         (uint256 maxLine, uint256 gap,,,) = autoLine.ilks(ilk);
         assertGt(maxLine, 0, "after: auto-line wiped unexpectedly");
         assertGt(gap, 0, "after: auto-line wiped unexpectedly");
+        assertFalse(spell.done(), "after: spell done unexpectedly");
     }
 
     event Wipe(bytes32 indexed autoLine, uint256 prevLine);

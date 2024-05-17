@@ -30,9 +30,6 @@ interface OsmMomLike {
 
 interface OsmLike {
     function stopped() external view returns (uint256);
-}
-
-interface WardsLike {
     function wards(address who) external view returns (uint256);
 }
 
@@ -75,9 +72,9 @@ contract UniversalOsmStopSpell is DssEmergencySpell {
 
             if (osm == address(0)) continue;
 
-            try WardsLike(osm).wards(address(osmMom)) returns (uint256 ward) {
+            try OsmLike(osm).wards(address(osmMom)) returns (uint256 ward) {
                 // Ignore Osm instances that have not relied on OsmMom.
-                if (ward != 1) continue;
+                if (ward == 0) continue;
             } catch Error(string memory reason) {
                 // If the reason is empty, it means the contract is most likely not an OSM instance.
                 require(bytes(reason).length == 0, reason);
@@ -87,7 +84,7 @@ contract UniversalOsmStopSpell is DssEmergencySpell {
             try OsmMomLike(osmMom).stop(ilks[i]) {
                 emit Stop(ilks[i], osm);
             } catch Error(string memory reason) {
-                // Ignore any failing calls to `osmMom.stop` with no revert reason.
+                // If the reason is empty, it means the contract is most likely not an OSM instance.
                 require(bytes(reason).length == 0, reason);
             }
         }
@@ -104,11 +101,11 @@ contract UniversalOsmStopSpell is DssEmergencySpell {
 
             if (osm == address(0)) continue;
 
-            try WardsLike(osm).wards(address(osmMom)) returns (uint256 ward) {
+            try OsmLike(osm).wards(address(osmMom)) returns (uint256 ward) {
                 // Ignore Osm instances that have not relied on OsmMom.
-                if (ward != 1) continue;
+                if (ward == 0) continue;
             } catch {
-                // Ignore any errors.
+                // If the call failed, it means the contract is most likely not an OSM instance, so it can be ignored.
                 continue;
             }
 
@@ -116,7 +113,7 @@ contract UniversalOsmStopSpell is DssEmergencySpell {
                 // If any of the OSMs that match the conditions is not stopped, the spell was not executed yet.
                 if (stopped == 0) return false;
             } catch {
-                // Ignore any errors.
+                // If the call failed, it means the contract is most likely not an OSM instance, so it can be ignored.
                 continue;
             }
         }

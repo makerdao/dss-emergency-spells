@@ -79,7 +79,7 @@ contract UniversalClipBreakerSpell is DssEmergencySpell {
 
             try ClipLike(clip).wards(address(clipperMom)) returns (uint256 ward) {
                 // Ignore Clip instances that have not relied on ClipperMom.
-                if (ward != 1) continue;
+                if (ward == 0) continue;
             } catch Error(string memory reason) {
                 // If the reason is empty, it means the contract is most likely not a Clip instance.
                 require(bytes(reason).length == 0, reason);
@@ -88,7 +88,7 @@ contract UniversalClipBreakerSpell is DssEmergencySpell {
             try clipperMom.setBreaker(clip, BREAKER_LEVEL, BREAKER_DELAY) {
                 emit SetBreaker(ilk, clip);
             } catch Error(string memory reason) {
-                // Ignore any failing calls to `clipeprMom.setBreaker` with no revert reason.
+                // If the reason is empty, it means the contract is most likely not a Clip instance.
                 require(bytes(reason).length == 0, reason);
             }
         }
@@ -108,16 +108,16 @@ contract UniversalClipBreakerSpell is DssEmergencySpell {
 
             try ClipLike(clip).wards(address(clipperMom)) returns (uint256 ward) {
                 // Ignore Clip instances that have not relied on ClipperMom.
-                if (ward != 1) continue;
+                if (ward == 0) continue;
             } catch {
-                // Ignore any errors.
+                // If The call failed, it means the contract is most likely not a Clip instance, so it can be ignored.
                 continue;
             }
 
             try ClipLike(clip).stopped() returns (uint256 stopped) {
                 if (stopped != BREAKER_LEVEL) return false;
             } catch {
-                // Ignore any errors.
+                // If the call failed, it means the contract is most likely not a Clip instance, so it can be ignored.
                 continue;
             }
         }

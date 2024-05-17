@@ -30,13 +30,13 @@ interface IlkRegistryLike {
 }
 
 contract SingleClipBreakerSpell is DssEmergencySpell {
-    ClipperMomLike public immutable clipperMom = ClipperMomLike(_log.getAddress("CLIPPER_MOM"));
-    IlkRegistryLike public immutable ilkReg = IlkRegistryLike(_log.getAddress("ILK_REGISTRY"));
-
+    /// @dev During an emergency, set the breaker level to 3  to prevent botyh `kick()`, `redo()` and `take()`.
     uint256 public constant BREAKER_LEVEL = 3;
-    // For level 3 breakers, the delay is not applicable, so we set it to zero.
+    /// @dev The delay is not applicable for level 3 breakers, so we set it to zero.
     uint256 public constant BREAKER_DELAY = 0;
 
+    ClipperMomLike public immutable clipperMom = ClipperMomLike(_log.getAddress("CLIPPER_MOM"));
+    IlkRegistryLike public immutable ilkReg = IlkRegistryLike(_log.getAddress("ILK_REGISTRY"));
     bytes32 public immutable ilk;
 
     event SetBreaker(address indexed clip);
@@ -56,8 +56,8 @@ contract SingleClipBreakerSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice Return whether the spell is done or not.
-     * @dev Check if the Clip instance has stopped = 3.
+     * @notice Returns whether the spell is done or not.
+     * @dev Checks if the Clip instance has stopped = 3.
      */
     function done() external view returns (bool) {
         return ClipLike(ilkReg.xlip(ilk)).stopped() == BREAKER_LEVEL;

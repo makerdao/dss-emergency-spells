@@ -37,15 +37,15 @@ interface WardsLike {
 }
 
 contract UniversalOsmStopSpell is DssEmergencySpell {
+    string public constant override description = "Emergency Spell | Universal OSM Stop";
+
     IlkRegistryLike public immutable ilkReg = IlkRegistryLike(_log.getAddress("ILK_REGISTRY"));
     OsmMomLike public immutable osmMom = OsmMomLike(_log.getAddress("OSM_MOM"));
-
-    string public constant override description = "Emergency Spell | Universal OSM Stop";
 
     event Stop(bytes32 indexed ilk, address indexed osm);
 
     /**
-     * @notice Stop, when possible, all OSMs that can be found through the ilk registry.
+     * @notice Stops, when possible, all OSMs that can be found through the ilk registry.
      */
     function _emeregencyActions() internal override {
         bytes32[] memory ilks = ilkReg.list();
@@ -53,7 +53,7 @@ contract UniversalOsmStopSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice Stop all OSMs in the batch.
+     * @notice Stops all OSMs in the batch.
      * @dev This is an escape hatch to prevent this spell from being blocked in case it would hit the block gas limit.
      *      In case `end` is greater than the ilk registry length, the iteration will be automatically capped.
      * @param start The index to start the iteration (inclusive).
@@ -66,7 +66,7 @@ contract UniversalOsmStopSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice Stop, when possible, all OSMs that can be found from the `ilks` list.
+     * @notice Stops, when possible, all OSMs that can be found from the `ilks` list.
      * @param ilks The list of ilks to consider.
      */
     function _doStop(bytes32[] memory ilks) internal {
@@ -94,8 +94,8 @@ contract UniversalOsmStopSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice Return whether the spell is done or not.
-     * @dev Check if all possible OSM instances from the ilk registry are stopped.
+     * @notice Returns whether the spell is done or not.
+     * @dev Checks if all possible OSM instances from the ilk registry are stopped.
      */
     function done() external view returns (bool) {
         bytes32[] memory ilks = ilkReg.list();

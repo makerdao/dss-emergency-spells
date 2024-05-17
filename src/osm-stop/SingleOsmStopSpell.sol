@@ -46,8 +46,8 @@ contract SingleOsmStopSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice Return whether the spell is done or not.
-     * @dev Check if the OSM instance is stopped.
+     * @notice Returns whether the spell is done or not.
+     * @dev Checks if the OSM instance is stopped.
      */
     function done() external view returns (bool) {
         return OsmLike(osmMom.osms(ilk)).stopped() == 1;

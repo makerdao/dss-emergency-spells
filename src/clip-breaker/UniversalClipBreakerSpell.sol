@@ -34,19 +34,19 @@ interface ClipLike {
 }
 
 contract UniversalClipBreakerSpell is DssEmergencySpell {
+    string public constant override description = "Emergency Spell | Universal Clip Breaker";
+    /// @dev During an emergency, set the breaker level to 3  to prevent botyh `kick()`, `redo()` and `take()`.
+    uint256 public constant BREAKER_LEVEL = 3;
+    /// @dev The delay is not applicable for level 3 breakers, so we set it to zero.
+    uint256 public constant BREAKER_DELAY = 0;
+
     IlkRegistryLike public immutable ilkReg = IlkRegistryLike(_log.getAddress("ILK_REGISTRY"));
     ClipperMomLike public immutable clipperMom = ClipperMomLike(_log.getAddress("CLIPPER_MOM"));
-
-    string public constant override description = "Emergency Spell | Universal Clip Breaker";
-
-    uint256 public constant BREAKER_LEVEL = 3;
-    // For level 3 breakers, the delay is not applicable, so we set it to zero.
-    uint256 public constant BREAKER_DELAY = 0;
 
     event SetBreaker(bytes32 indexed ilk, address indexed clip);
 
     /**
-     * @notice Set breakers, when possible, for all Clip instances that can be found in the ilk registry.
+     * @notice Sets breakers, when possible, for all Clip instances that can be found in the ilk registry.
      */
     function _emeregencyActions() internal override {
         bytes32[] memory ilks = ilkReg.list();
@@ -54,7 +54,7 @@ contract UniversalClipBreakerSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice Set breakers for all Clips in the batch.
+     * @notice Sets breakers for all Clips in the batch.
      * @dev This is an escape hatch to prevent this spell from being blocked in case it would hit the block gas limit.
      *      In case `end` is greater than the ilk registry length, the iteration will be automatically capped.
      * @param start The index to start the iteration (inclusive).
@@ -67,7 +67,7 @@ contract UniversalClipBreakerSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice Set breakers, when possible, for all Clip instances that can be found from the `ilks` list.
+     * @notice Sets breakers, when possible, for all Clip instances that can be found from the `ilks` list.
      * @param ilks The list of ilks to consider.
      */
     function _doSetBreaker(bytes32[] memory ilks) internal {
@@ -95,8 +95,8 @@ contract UniversalClipBreakerSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice Return whether the spell is done or not.
-     * @dev Check if all possible Clip instances from the ilk registry have stopped = 3.
+     * @notice Returns whether the spell is done or not.
+     * @dev Checks if all possible Clip instances from the ilk registry have stopped = 3.
      */
     function done() external view returns (bool) {
         bytes32[] memory ilks = ilkReg.list();

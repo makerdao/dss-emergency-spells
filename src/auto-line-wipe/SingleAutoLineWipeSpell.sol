@@ -49,8 +49,8 @@ contract SingleAutoLineWipeSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice Return whether the spell is done or not.
-     * @dev Check if the ilk has been wiped from auto-line.
+     * @notice Returns whether the spell is done or not.
+     * @dev Checks if the ilk has been wiped from auto-line.
      */
     function done() external view returns (bool) {
         (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc) =

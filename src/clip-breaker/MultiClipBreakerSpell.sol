@@ -33,8 +33,8 @@ interface ClipLike {
     function stopped() external view returns (uint256);
 }
 
-contract UniversalClipBreakerSpell is DssEmergencySpell {
-    string public constant override description = "Emergency Spell | Universal Clip Breaker";
+contract MultiClipBreakerSpell is DssEmergencySpell {
+    string public constant override description = "Emergency Spell | Multi Clip Breaker";
     /// @dev During an emergency, set the breaker level to 3  to prevent botyh `kick()`, `redo()` and `take()`.
     uint256 public constant BREAKER_LEVEL = 3;
     /// @dev The delay is not applicable for level 3 breakers, so we set it to zero.

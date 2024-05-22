@@ -17,7 +17,7 @@ pragma solidity ^0.8.16;
 
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD, GodMode} from "dss-test/DssTest.sol";
-import {UniversalClipBreakerSpell} from "./UniversalClipBreakerSpell.sol";
+import {MultiClipBreakerSpell} from "./MultiClipBreakerSpell.sol";
 
 interface IlkRegistryLike {
     function count() external view returns (uint256);
@@ -34,7 +34,7 @@ interface ClipLike {
     function stopped() external view returns (uint256);
 }
 
-contract UniversalClipBreakerSpellTest is DssTest {
+contract MultiClipBreakerSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
@@ -42,7 +42,7 @@ contract UniversalClipBreakerSpellTest is DssTest {
     address chief;
     IlkRegistryLike ilkReg;
     address clipperMom;
-    UniversalClipBreakerSpell spell;
+    MultiClipBreakerSpell spell;
 
     mapping(bytes32 => bool) ilksToIgnore;
 
@@ -54,7 +54,7 @@ contract UniversalClipBreakerSpellTest is DssTest {
         chief = dss.chainlog.getAddress("MCD_ADM");
         ilkReg = IlkRegistryLike(dss.chainlog.getAddress("ILK_REGISTRY"));
         clipperMom = dss.chainlog.getAddress("CLIPPER_MOM");
-        spell = new UniversalClipBreakerSpell();
+        spell = new MultiClipBreakerSpell();
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
 
@@ -105,7 +105,7 @@ contract UniversalClipBreakerSpellTest is DssTest {
         }
     }
 
-    function testUniversalClipBreakerOnSchedule() public {
+    function testMultiClipBreakerOnSchedule() public {
         _checkClipMaxStoppedStatus({ilks: ilkReg.list(), maxExpected: 2});
         assertFalse(spell.done(), "before: spell already done");
 
@@ -115,7 +115,7 @@ contract UniversalClipBreakerSpellTest is DssTest {
         assertTrue(spell.done(), "after: spell not done");
     }
 
-    function testUniversalClipBreakerInBatches_Fuzz(uint256 batchSize) public {
+    function testMultiClipBreakerInBatches_Fuzz(uint256 batchSize) public {
         batchSize = bound(batchSize, 1, type(uint128).max);
         uint256 count = ilkReg.count();
         uint256 maxEnd = count - 1;
@@ -153,7 +153,7 @@ contract UniversalClipBreakerSpellTest is DssTest {
         assertEq(ClipLike(clipEthA).stopped(), 0, "ETH-A Clip was not ignored");
     }
 
-    function testRevertUniversalClipBreakerWhenItDoesNotHaveTheHat() public {
+    function testRevertMultiClipBreakerWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
         _checkClipMaxStoppedStatus({ilks: ilkReg.list(), maxExpected: 2});

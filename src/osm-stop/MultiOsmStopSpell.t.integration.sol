@@ -26,9 +26,6 @@ interface OsmMomLike {
 interface OsmLike {
     function stopped() external view returns (uint256);
     function osms(bytes32 ilk) external view returns (address);
-}
-
-interface WardsLike {
     function wards(address who) external view returns (uint256);
 }
 
@@ -97,7 +94,7 @@ contract MultiOsmStopSpellTest is DssTest {
                 continue;
             }
 
-            try WardsLike(osm).wards(address(osmMom)) returns (uint256 ward) {
+            try OsmLike(osm).wards(address(osmMom)) returns (uint256 ward) {
                 if (ward == 0) {
                     ilksToIgnore[ilks[i]] = true;
                     emit log_named_string("Ignoring ilk | OsmMom not authorized", ilkStr);
@@ -170,6 +167,8 @@ contract MultiOsmStopSpellTest is DssTest {
     }
 
     function _checkOsmStoppedStatus(bytes32[] memory ilks, uint256 expected) internal view {
+        assertTrue(ilks.length > 0, "empty ilks list");
+
         for (uint256 i = 0; i < ilks.length; i++) {
             if (ilksToIgnore[ilks[i]]) continue;
 

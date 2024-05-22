@@ -167,6 +167,8 @@ contract MultiClipBreakerSpellTest is DssTest {
     }
 
     function _checkClipMaxStoppedStatus(bytes32[] memory ilks, uint256 maxExpected) internal view {
+        assertTrue(ilks.length > 0, "empty ilks list");
+
         for (uint256 i = 0; i < ilks.length; i++) {
             if (ilksToIgnore[ilks[i]]) continue;
 
@@ -178,6 +180,8 @@ contract MultiClipBreakerSpellTest is DssTest {
     }
 
     function _checkClipStoppedStatus(bytes32[] memory ilks, uint256 expected) internal view {
+        assertTrue(ilks.length > 0, "empty ilks list");
+
         for (uint256 i = 0; i < ilks.length; i++) {
             if (ilksToIgnore[ilks[i]]) continue;
 

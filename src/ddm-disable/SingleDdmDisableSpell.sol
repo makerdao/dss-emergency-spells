@@ -56,7 +56,7 @@ contract SingleDdmDisableSpell is DssEmergencySpell {
      * @dev Checks if the plan instance has stopped = 3.
      */
     function done() external view returns (bool) {
-        return !DdmPlanLike(ddmHub.plan(ilk)).active();
+        return DdmPlanLike(ddmHub.plan(ilk)).active() == false;
     }
 }
 

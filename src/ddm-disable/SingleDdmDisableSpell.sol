@@ -45,7 +45,7 @@ contract SingleDdmDisableSpell is DssEmergencySpell {
         return string(abi.encodePacked("Emergency Spell | Disable DDM Plan: ", ilk));
     }
 
-    function _emeregencyActions() internal override {
+    function _emergencyActions() internal override {
         address plan = ddmHub.plan(ilk);
         ddmMom.disable(plan);
         emit Disable(plan);

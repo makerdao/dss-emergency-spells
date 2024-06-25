@@ -48,7 +48,7 @@ contract MultiClipBreakerSpell is DssEmergencySpell {
     /**
      * @notice Sets breakers, when possible, for all Clip instances that can be found in the ilk registry.
      */
-    function _emeregencyActions() internal override {
+    function _emergencyActions() internal override {
         bytes32[] memory ilks = ilkReg.list();
         _doSetBreaker(ilks);
     }

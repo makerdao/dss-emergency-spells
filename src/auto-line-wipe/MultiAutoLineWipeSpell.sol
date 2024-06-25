@@ -47,7 +47,7 @@ contract MultiAutoLineWipeSpell is DssEmergencySpell {
     /**
      * @notice Wipes, when possible, all ilks from auto-line;
      */
-    function _emeregencyActions() internal override {
+    function _emergencyActions() internal override {
         bytes32[] memory ilks = ilkReg.list();
         _doWipe(ilks);
     }

@@ -44,7 +44,7 @@ contract MultiOsmStopSpell is DssEmergencySpell {
     /**
      * @notice Stops, when possible, all OSMs that can be found through the ilk registry.
      */
-    function _emeregencyActions() internal override {
+    function _emergencyActions() internal override {
         bytes32[] memory ilks = ilkReg.list();
         _doStop(ilks);
     }

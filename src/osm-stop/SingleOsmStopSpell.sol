@@ -40,7 +40,7 @@ contract SingleOsmStopSpell is DssEmergencySpell {
         return string(abi.encodePacked("Emergency Spell | OSM Stop: ", ilk));
     }
 
-    function _emeregencyActions() internal override {
+    function _emergencyActions() internal override {
         osmMom.stop(ilk);
         emit Stop(osmMom.osms(ilk));
     }

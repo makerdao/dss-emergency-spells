@@ -43,7 +43,7 @@ contract SingleAutoLineWipeSpell is DssEmergencySpell {
         return string(abi.encodePacked("Emergency Spell | Auto-Line Wipe: ", ilk));
     }
 
-    function _emeregencyActions() internal override {
+    function _emergencyActions() internal override {
         uint256 prevLine = lineMom.wipe(ilk);
         emit Wipe(ilk, prevLine);
     }

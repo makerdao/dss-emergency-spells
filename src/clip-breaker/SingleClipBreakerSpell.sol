@@ -49,7 +49,7 @@ contract SingleClipBreakerSpell is DssEmergencySpell {
         return string(abi.encodePacked("Emergency Spell | Set Clip Breaker: ", ilk));
     }
 
-    function _emeregencyActions() internal override {
+    function _emergencyActions() internal override {
         address clip = ilkReg.xlip(ilk);
         clipperMom.setBreaker(clip, BREAKER_LEVEL, BREAKER_DELAY);
         emit SetBreaker(clip);

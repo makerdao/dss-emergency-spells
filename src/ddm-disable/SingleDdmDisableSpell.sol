@@ -23,7 +23,6 @@ interface DdmMomLike {
 
 interface DdmPlanLike {
     function active() external view returns (bool);
-    function disable() external;
 }
 
 interface DdmHubLike {

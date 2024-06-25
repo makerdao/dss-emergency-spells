@@ -33,7 +33,7 @@ contract SingleAutoLineWipeSpell is DssEmergencySpell {
     LineMomLike public immutable lineMom = LineMomLike(_log.getAddress("LINE_MOM"));
     bytes32 public immutable ilk;
 
-    event Wipe(bytes32 indexed ilk, uint256 prevLine);
+    event Wipe();
 
     constructor(bytes32 _ilk) {
         ilk = _ilk;
@@ -44,8 +44,8 @@ contract SingleAutoLineWipeSpell is DssEmergencySpell {
     }
 
     function _emergencyActions() internal override {
-        uint256 prevLine = lineMom.wipe(ilk);
-        emit Wipe(ilk, prevLine);
+        lineMom.wipe(ilk);
+        emit Wipe();
     }
 
     /**

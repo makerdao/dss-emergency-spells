@@ -62,8 +62,7 @@ contract SingleAutoLineWipeSpellTest is DssTest {
         assertFalse(spell.done(), "before: spell already done");
 
         vm.expectEmit(true, true, true, false);
-        // Ignore prevLine for now
-        emit Wipe(ilk, 0);
+        emit Wipe();
         spell.schedule();
 
         (uint256 maxLine, uint256 gap,,,) = autoLine.ilks(ilk);
@@ -89,5 +88,5 @@ contract SingleAutoLineWipeSpellTest is DssTest {
         assertFalse(spell.done(), "after: spell done unexpectedly");
     }
 
-    event Wipe(bytes32 indexed autoLine, uint256 prevLine);
+    event Wipe();
 }

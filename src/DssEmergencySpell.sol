@@ -52,6 +52,8 @@ abstract contract DssEmergencySpell is DssEmergencySpellLike {
     /// @dev The chainlog contract reference.
     ChainlogLike internal constant _log = ChainlogLike(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
 
+    // @dev The reference to the `pause` contract.
+    address public immutable pause = _log.getAddress("MCD_PAUSE");
     /// @dev The chainlog address.
     address public constant log = address(_log);
     /// @dev In regular spells, `eta` is used to enforce the GSM delay.
@@ -64,10 +66,8 @@ abstract contract DssEmergencySpell is DssEmergencySpellLike {
     // @dev Office Hours is always `false` for emergency spells.
     bool public constant officeHours = false;
     // @dev `action` is expected to return a valid address.
-    //         We also implement the `DssAction` interface in this contract.
+    //      We also implement the `DssAction` interface in this contract.
     address public immutable action = address(this);
-    // @dev The reference to the `pause` contract.
-    address public immutable pause = ChainlogLike(log).getAddress("MCD_PAUSE");
     // @dev An emergency spell can be cast as soon as it is deployed.
     //      Notice that cast is always a no-op.
     uint256 internal immutable _nextCastTime = block.timestamp;
@@ -77,12 +77,11 @@ abstract contract DssEmergencySpell is DssEmergencySpellLike {
      *      It specifically uses a separate contract for spell action because `tag` is immutable and the code hash of
      *      the contract being initialized is not accessible in the constructor.
      *      Since we do not have a separate contract for actions in Emergency Spells, `tag` has to be turned into a
-     *      getter function instaed of an immutable variable.
+     *      getter function instead of an immutable variable.
+     * @return The contract codehash.
      */
-    function tag() external view returns (bytes32 _tag) {
-        assembly {
-            _tag := extcodehash(address())
-        }
+    function tag() external view returns (bytes32) {
+        return address(this).codehash;
     }
 
     /**

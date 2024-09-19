@@ -63,14 +63,14 @@ abstract contract DssEmergencySpell is DssEmergencySpellLike {
     bytes public constant sig = abi.encodeWithSelector(DssAction.execute.selector);
     /// @dev Emergency spells should not expire.
     uint256 public constant expiration = type(uint256).max;
+    // @dev An emergency spell does not need to be cast, as all actions happen during the schedule phase.
+    //      Notice that cast is usually not supposed to revert, so it is implemented as a no-op.
+    uint256 internal immutable _nextCastTime = type(uint256).max;
     // @dev Office Hours is always `false` for emergency spells.
     bool public constant officeHours = false;
     // @dev `action` is expected to return a valid address.
     //      We also implement the `DssAction` interface in this contract.
     address public immutable action = address(this);
-    // @dev An emergency spell can be cast as soon as it is deployed.
-    //      Notice that cast is always a no-op.
-    uint256 internal immutable _nextCastTime = block.timestamp;
 
     /**
      * @dev In regular spells, `tag` is an immutable variable with the code hash of the spell action.
@@ -101,7 +101,7 @@ abstract contract DssEmergencySpell is DssEmergencySpellLike {
 
     /**
      * @notice Returns `_nextCastTime`.
-     * @dev this function exists only to keep interface compatibility with regular spells.
+     * @dev This function exists only to keep interface compatibility with regular spells.
      */
     function nextCastTime() external view returns (uint256 castTime) {
         return _nextCastTime;
@@ -109,25 +109,25 @@ abstract contract DssEmergencySpell is DssEmergencySpellLike {
 
     /**
      * @notice No-op.
-     * @dev this function exists only to keep interface compatibility with regular spells.
+     * @dev This function exists only to keep interface compatibility with regular spells.
      */
     function cast() external {}
 
     /**
      * @notice No-op.
-     * @dev this function exists only to keep interface compatibility with regular spells.
+     * @dev This function exists only to keep interface compatibility with regular spells.
      */
     function execute() external {}
 
     /**
      * @notice No-op.
-     * @dev this function exists only to keep interface compatibility with regular spells.
+     * @dev This function exists only to keep interface compatibility with regular spells.
      */
     function actions() external {}
 
     /**
      * @notice Returns `nextCastTime`, regardless of the input parameter.
-     * @dev this function exists only to keep interface compatibility with regular spells.
+     * @dev This function exists only to keep interface compatibility with regular spells.
      */
     function nextCastTime(uint256) external view returns (uint256 castTime) {
         return _nextCastTime;

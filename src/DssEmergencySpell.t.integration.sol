@@ -53,8 +53,8 @@ contract DssEmergencySpellTest is DssTest {
         assertEq(spell.pause(), pause, "invalid pause");
         assertEq(spell.action(), address(spell), "invalid action");
         assertEq(spell.eta(), 0, "invalid eta");
-        assertEq(spell.nextCastTime(), block.timestamp, "invalid nextCastTime");
-        assertEq(spell.nextCastTime(1231298123), block.timestamp, "invalid nextCastTime(uint256)");
+        assertEq(spell.nextCastTime(), type(uint256).max, "invalid nextCastTime");
+        assertEq(spell.nextCastTime(1231298123), type(uint256).max, "invalid nextCastTime(uint256)");
         assertEq(spell.officeHours(), false, "invalid officeHours");
         assertEq(spell.sig(), abi.encodeWithSignature("execute()"), "invalid sig");
         {

@@ -49,21 +49,21 @@ TBD.
 
 ### Wipe `AutoLine`
 
-No further debt can be generated from an ilk which is wiped from `AutoLine`. It also prevents the debt ceiling
+No further debt can be generated from an ilk which is wiped from `MCD_IAM_AUTO_LINE`. It also prevents the debt ceiling
 (`line`) for the affected ilk from being changed without Governance interference.
 
 ### Set `Clip` breaker
 
-Halts collateral auctions happening in the `Clip` contract belonging to the specified ilks. Sets the breaker level to 3
+Halts collateral auctions happening in the `MCD_CLIP_{ILK}` contract belonging to the specified ilks. Sets the breaker level to 3
 to prevent both `kick()`, `redo()` and `take()`.
 
 ### Disable `DDM`
 
-Disables a Direct Deposit Module, preventing further debt from being generated from it.
+Disables a Direct Deposit Module (`DIRECT_{ID}_PLAN`), preventing further debt from being generated from it.
 
 ### Stop `OSM`
 
-Stops the specified Oracle Security Module instances, preventing updates in their price feeds.
+Stops the specified Oracle Security Module (`PIP_{GEM}`) instances, preventing updates in their price feeds.
 
 ## Design
 

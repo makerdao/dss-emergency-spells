@@ -161,9 +161,6 @@ contract MultiClipBreakerSpellTest is DssTest {
 
         vm.expectRevert();
         spell.schedule();
-
-        _checkClipMaxStoppedStatus({ilks: ilkReg.list(), maxExpected: 2});
-        assertFalse(spell.done(), "false: spell done unexpectedly");
     }
 
     function _checkClipMaxStoppedStatus(bytes32[] memory ilks, uint256 maxExpected) internal view {

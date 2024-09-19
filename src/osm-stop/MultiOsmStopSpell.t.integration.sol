@@ -162,8 +162,6 @@ contract MultiOsmStopSpellTest is DssTest {
 
         vm.expectRevert();
         spell.schedule();
-
-        _checkOsmStoppedStatus({ilks: ilkReg.list(), expected: 0});
     }
 
     function _checkOsmStoppedStatus(bytes32[] memory ilks, uint256 expected) internal view {

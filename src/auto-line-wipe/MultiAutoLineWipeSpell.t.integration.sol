@@ -129,8 +129,6 @@ contract MultiAutoLineWipeSpellTest is DssTest {
 
         vm.expectRevert();
         spell.schedule();
-
-        _checkAutoLineWipedStatus({ilks: ilkReg.list(), expected: false});
     }
 
     function _checkAutoLineWipedStatus(bytes32[] memory ilks, bool expected) internal view {

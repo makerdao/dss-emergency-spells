@@ -19,8 +19,8 @@ import {DssEmergencySpell} from "../DssEmergencySpell.sol";
 
 enum Flow {
     SELL, // Halt only selling gems
-    BUY, // Halt only buying gems
-    BOTH // Halt Both
+    BUY,  // Halt only buying gems
+    BOTH  // Halt both
 }
 
 interface LitePsmMomLike {
@@ -33,6 +33,12 @@ interface LitePsmLike {
     function HALTED() external view returns (uint256);
 }
 
+/// @title Lite PSM Halt Emergency Spell
+/// @notice Will halt trading on MCD_LITE_PSM_USDC_A, can halt only gem buys, sells, or both.
+/// @custom:authors [Oddaf]
+/// @custom:reviewers []
+/// @custom:auditors []
+/// @custom:bounties []
 contract SingleLitePsmHaltSpell is DssEmergencySpell {
     LitePsmMomLike public immutable litePsmMom = LitePsmMomLike(_log.getAddress("LITE_PSM_MOM"));
     Flow public immutable flow;
@@ -55,6 +61,9 @@ contract SingleLitePsmHaltSpell is DssEmergencySpell {
         return string(abi.encodePacked("Emergency Spell | MCD_LITE_PSM_USDC_A halt: ", flowToString(flow)));
     }
 
+    /**
+     * @notice Halts trading on LitePSM
+     */
     function _emergencyActions() internal override {
         litePsmMom.halt(psm, flow);
         emit Halt(flow);

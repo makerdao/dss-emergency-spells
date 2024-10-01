@@ -69,7 +69,7 @@ Stops the specified Oracle Security Module (`PIP_{GEM}`) instances, preventing u
 
 ### Halt `PSM`
 
-Halts swaps on the PSM, with optional direction (only GEM buys, only GEM sells, both).
+Halts swaps on the `PSM`, with optional direction (only `GEM` buys, only `GEM` sells, both).
 
 ### Stop `Splitter`
 

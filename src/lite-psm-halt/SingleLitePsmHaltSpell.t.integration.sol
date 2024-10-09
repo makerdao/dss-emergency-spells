@@ -29,18 +29,18 @@ contract SingleLitePsmHaltSpellTest is DssTest {
     }
 
     function testPsmHaltOnScheduleBuy() public {
-        testPsmHaltOnSchedule(Flow.BUY);
+        _checkPsmHaltOnSchedule(Flow.BUY);
     }
 
     function testPsmHaltOnScheduleSell() public {
-        testPsmHaltOnSchedule(Flow.SELL);
+        _checkPsmHaltOnSchedule(Flow.SELL);
     }
 
     function testPsmHaltOnScheduleBoth() public {
-        testPsmHaltOnSchedule(Flow.BOTH);
+        _checkPsmHaltOnSchedule(Flow.BOTH);
     }
 
-    function testPsmHaltOnSchedule(Flow flow) internal {
+    function _checkPsmHaltOnSchedule(Flow flow) internal {
         DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(psm), flow));
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
         vm.makePersistent(chief);

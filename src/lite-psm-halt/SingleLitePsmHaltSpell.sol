@@ -51,7 +51,7 @@ contract SingleLitePsmHaltSpell is DssEmergencySpell {
         flow = _flow;
     }
 
-    function flowToString(Flow _flow) internal pure returns (string memory) {
+    function _flowToString(Flow _flow) internal pure returns (string memory) {
         if (_flow == Flow.SELL) return "SELL";
         if (_flow == Flow.BUY) return "BUY";
         if (_flow == Flow.BOTH) return "BOTH";
@@ -59,7 +59,7 @@ contract SingleLitePsmHaltSpell is DssEmergencySpell {
     }
 
     function description() external view returns (string memory) {
-        return string(abi.encodePacked("Emergency Spell | MCD_LITE_PSM_USDC_A halt: ", flowToString(flow)));
+        return string(abi.encodePacked("Emergency Spell | MCD_LITE_PSM_USDC_A halt: ", _flowToString(flow)));
     }
 
     /**

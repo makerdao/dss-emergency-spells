@@ -47,7 +47,7 @@ TBD.
 | Disable `DDM`      | :white_check_mark: | :x:                |
 | Stop `OSM`         | :white_check_mark: | :white_check_mark: |
 | Halt `PSM`         | :white_check_mark: | :x:                |
-| Stop `Splitter`    | n/a                | :white_check_mark: |
+| Stop `Splitter`    | :x:                | :white_check_mark: |
 
 ### Wipe `AutoLine`
 

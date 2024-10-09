@@ -34,7 +34,7 @@ contract SplitterStopSpellTest is DssTest {
         assertFalse(spell.done(), "before: spell already done");
 
         vm.expectEmit(true, false, false, false, address(spell));
-        emit SplitterDisabled();
+        emit Stop();
 
         spell.schedule();
 
@@ -58,5 +58,5 @@ contract SplitterStopSpellTest is DssTest {
         assertFalse(spell.done(), "after: spell done unexpectedly");
     }
 
-    event SplitterDisabled();
+    event Stop();
 }

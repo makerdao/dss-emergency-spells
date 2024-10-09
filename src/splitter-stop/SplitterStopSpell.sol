@@ -37,14 +37,14 @@ contract SplitterStopSpell is DssEmergencySpell {
     SplitterMomLike public immutable splitterMom = SplitterMomLike(_log.getAddress("SPLITTER_MOM"));
     SplitterLike public immutable splitter = SplitterLike(_log.getAddress("MCD_SPLIT"));
 
-    event SplitterDisabled();
+    event Stop();
 
     /**
      * @notice Disables Splitter
      */
     function _emergencyActions() internal override {
         splitterMom.stop();
-        emit SplitterDisabled();
+        emit Stop();
     }
 
     /**

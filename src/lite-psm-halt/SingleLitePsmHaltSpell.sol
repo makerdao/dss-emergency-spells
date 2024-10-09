@@ -19,8 +19,9 @@ import {DssEmergencySpell} from "../DssEmergencySpell.sol";
 
 enum Flow {
     SELL, // Halt only selling gems
-    BUY,  // Halt only buying gems
-    BOTH  // Halt both
+    BUY, // Halt only buying gems
+    BOTH // Halt both
+
 }
 
 interface LitePsmMomLike {

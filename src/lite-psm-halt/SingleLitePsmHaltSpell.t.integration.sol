@@ -16,7 +16,6 @@ contract SingleLitePsmHaltSpellTest is DssTest {
     LitePsmLike psm;
     SingleLitePsmHaltSpellFactory factory;
 
-
     function setUp() public {
         vm.createSelectFork("mainnet");
 

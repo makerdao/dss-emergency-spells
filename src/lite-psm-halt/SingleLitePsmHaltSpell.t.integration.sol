@@ -41,7 +41,7 @@ contract SingleLitePsmHaltSpellTest is DssTest {
     }
 
     function testPsmHaltOnSchedule(Flow flow) internal {
-        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(flow));
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(psm), flow));
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
         vm.makePersistent(chief);
 
@@ -77,7 +77,7 @@ contract SingleLitePsmHaltSpellTest is DssTest {
 
     function testRevertPsmHaltWhenItDoesNotHaveTheHat() public {
         Flow flow = Flow.BOTH;
-        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(flow));
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(psm), flow));
 
         uint256 preTin = psm.tin();
         uint256 preTout = psm.tout();

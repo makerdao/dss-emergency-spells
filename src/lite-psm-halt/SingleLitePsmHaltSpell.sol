@@ -42,11 +42,12 @@ interface LitePsmLike {
 contract SingleLitePsmHaltSpell is DssEmergencySpell {
     LitePsmMomLike public immutable litePsmMom = LitePsmMomLike(_log.getAddress("LITE_PSM_MOM"));
     Flow public immutable flow;
-    address public immutable psm = _log.getAddress("MCD_LITE_PSM_USDC_A");
+    address public immutable psm;
 
     event Halt(Flow what);
 
-    constructor(Flow _flow) {
+    constructor(address _psm, Flow _flow) {
+        psm = _psm;
         flow = _flow;
     }
 
@@ -89,10 +90,10 @@ contract SingleLitePsmHaltSpell is DssEmergencySpell {
 }
 
 contract SingleLitePsmHaltSpellFactory {
-    event Deploy(Flow indexed flow, address spell);
+    event Deploy(address psm, Flow indexed flow, address spell);
 
-    function deploy(Flow flow) external returns (address spell) {
-        spell = address(new SingleLitePsmHaltSpell(flow));
-        emit Deploy(flow, spell);
+    function deploy(address psm, Flow flow) external returns (address spell) {
+        spell = address(new SingleLitePsmHaltSpell(psm, flow));
+        emit Deploy(psm, flow, spell);
     }
 }

@@ -21,7 +21,6 @@ enum Flow {
     SELL, // Halt only selling gems
     BUY, // Halt only buying gems
     BOTH // Halt both
-
 }
 
 interface LitePsmMomLike {
@@ -42,8 +41,8 @@ interface LitePsmLike {
 /// @custom:bounties []
 contract SingleLitePsmHaltSpell is DssEmergencySpell {
     LitePsmMomLike public immutable litePsmMom = LitePsmMomLike(_log.getAddress("LITE_PSM_MOM"));
-    Flow public immutable flow;
     address public immutable psm;
+    Flow public immutable flow;
 
     event Halt(Flow what);
 

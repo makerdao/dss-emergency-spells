@@ -40,7 +40,7 @@ TBD.
 
 ## Implemented Actions
 
-| Description        | Single ilk         | Universal          |
+| Description        | Single ilk         | Multi ilk          |
 | :----------        | :--------:         | :-------:          |
 | Wipe `AutoLine`    | :white_check_mark: | :white_check_mark: |
 | Set `Clip` breaker | :white_check_mark: | :white_check_mark: |
@@ -66,6 +66,8 @@ Disables a Direct Deposit Module (`DIRECT_{ID}_PLAN`), preventing further debt f
 Stops the specified Oracle Security Module (`PIP_{GEM}`) instances, preventing updates in their price feeds.
 
 ## Design
+
+### Overview
 
 Emergency spells are meant to be as ABI-compatible with regular spells as possible, to allow Governance to reuse any
 existing tools, which will not increase the cognitive burden in an emergency situation.
@@ -108,7 +110,27 @@ constructor.</sub>
 Some types of emergency spells may come in 2 flavors:
 
 1. Single ilk: applies the desired spell action for a single pre-defined ilk.
-1. Universal: applies the desired spell action for all applicable ilks.
+1. Multi ilk: applies the desired spell action for all applicable ilks.
 
 Furthermore, this repo provides on-chain factories for single ilk emergency spells to make it easier to deploy for new
 ilks.
+
+### About the `done()` function
+
+Conforming spells have a [`done`][spell-done] public storage variable which is `false` when the spell is deployed and
+set to `true` when the spell is cast. This ensures a spell cannot be cast twice.
+
+An emergency spell is not meant to be cast, but it can be scheduled multiple times. So instead of having `done` as a
+storage variable, it becomes a getter function that will return:
+- `false`: if the emergency spell can be scheduled in the current state, given it is lifted to the hat.
+- `true`: if the desired effects of the spell can be verified or if there is anything that would prevent the spell from
+  being scheduled (i.e.: bad system config)
+
+Generally speaking, `done` should almost always return `false` for any emergency spell. If it returns `true` it means it
+has just been scheduled or there is most likely something wrong with the modules touched by it. The exception is the
+case where the system naturally achieves the same final state as the spell being scheduled, in which it would be also
+returned `true`.
+
+In other words, if `done() == true`, it means that the actions performed by the spell is not applicable.
+
+[spell-done]: https://github.com/makerdao/dss-exec-lib/blob/69b658f35d8618272cd139dfc18c5713caf6b96b/src/DssExec.sol#L43

@@ -24,6 +24,7 @@ interface OsmMomLike {
 }
 
 interface OsmLike {
+    function src() external view returns (address);
     function stopped() external view returns (uint256);
     function osms(bytes32 ilk) external view returns (address);
     function wards(address who) external view returns (uint256);
@@ -74,7 +75,7 @@ contract MultiOsmStopSpellTest is DssTest {
         bytes32[] memory ilks = ilkReg.list();
         for (uint256 i = 0; i < ilks.length; i++) {
             string memory ilkStr = string(abi.encodePacked(ilks[i]));
-            address osm = ilkReg.pip(ilks[i]);
+            address osm = osmMom.osms(ilks[i]);
             if (osm == address(0)) {
                 ilksToIgnore[ilks[i]] = true;
                 emit log_named_string("Ignoring ilk | No OSM", ilkStr);
@@ -149,10 +150,40 @@ contract MultiOsmStopSpellTest is DssTest {
 
         _checkOsmStoppedStatus({ilks: ilkReg.list(), expected: 0});
 
+        vm.expectEmit(true, true, true, true);
+        emit Fail("ETH-A", pipEth, "osmMom-not-ward");
         spell.schedule();
 
         _checkOsmStoppedStatus({ilks: ilkReg.list(), expected: 1});
         assertEq(OsmLike(pipEth).stopped(), 0, "ETH-A pip was not ignored");
+    }
+
+    function testNonOsmShouldNotRevert() public {
+        // Not an OSM
+        address medianEth = OsmLike(ilkReg.pip("ETH-A")).src();
+        // Overwrite OSMMom so it uses the wrong contract.
+        stdstore.target(address(osmMom)).sig("osms(bytes32)").with_key("ETH-A").checked_write(
+            bytes32(uint256(uint160(medianEth)))
+        );
+        stdstore.target(address(osmMom)).sig("osms(bytes32)").with_key("ETH-B").checked_write(
+            bytes32(uint256(uint160(medianEth)))
+        );
+        stdstore.target(address(osmMom)).sig("osms(bytes32)").with_key("ETH-C").checked_write(
+            bytes32(uint256(uint160(medianEth)))
+        );
+        // De-auth OsmMom to force the error:
+        stdstore.target(medianEth).sig("wards(address)").with_key(address(osmMom)).checked_write(bytes32(uint256(1)));
+        // Updates the list of ilks to be ignored.
+        _initIlksToIgnore();
+
+        _checkOsmStoppedStatus({ilks: ilkReg.list(), expected: 0});
+
+        vm.expectEmit(true, true, true, true);
+        emit Fail("ETH-A", medianEth, "");
+        spell.schedule();
+
+        _checkOsmStoppedStatus({ilks: ilkReg.list(), expected: 1});
+        assertEq(OsmLike(ilkReg.pip("ETH-A")).stopped(), 0, "ETH-A pip was not ignored");
     }
 
     function testRevertMultiOracleStopWhenItDoesNotHaveTheHat() public {
@@ -174,4 +205,6 @@ contract MultiOsmStopSpellTest is DssTest {
             assertEq(OsmLike(pip).stopped(), expected, string(abi.encodePacked("invalid stopped status: ", ilks[i])));
         }
     }
+
+    event Fail(bytes32 indexed ilk, address indexed osm, bytes reason);
 }

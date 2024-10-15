@@ -44,6 +44,7 @@ contract MultiClipBreakerSpell is DssEmergencySpell {
     ClipperMomLike public immutable clipperMom = ClipperMomLike(_log.getAddress("CLIPPER_MOM"));
 
     event SetBreaker(bytes32 indexed ilk, address indexed clip);
+    event Fail(bytes32 indexed ilk, address indexed clip, bytes reason);
 
     /**
      * @notice Sets breakers, when possible, for all Clip instances that can be found in the ilk registry.
@@ -72,24 +73,31 @@ contract MultiClipBreakerSpell is DssEmergencySpell {
      */
     function _doSetBreaker(bytes32[] memory ilks) internal {
         for (uint256 i = 0; i < ilks.length; i++) {
-            bytes32 ilk = ilks[i];
-            address clip = ilkReg.xlip(ilk);
+            address clip = ilkReg.xlip(ilks[i]);
 
-            if (clip == address(0)) continue;
+            if (clip == address(0)) {
+                continue;
+            }
 
             try ClipLike(clip).wards(address(clipperMom)) returns (uint256 ward) {
-                // Ignore Clip instances that have not relied on ClipperMom.
-                if (ward == 0) continue;
-            } catch Error(string memory reason) {
-                // If the reason is empty, it means the contract is most likely not a Clip instance.
-                require(bytes(reason).length == 0, reason);
+                if (ward == 0) {
+                    emit Fail(ilks[i], clip, "clipperMom-not-ward");
+                    continue;
+                }
+            } catch (bytes memory reason) {
+                emit Fail(ilks[i], clip, reason);
+                continue;
             }
 
             try clipperMom.setBreaker(clip, BREAKER_LEVEL, BREAKER_DELAY) {
-                emit SetBreaker(ilk, clip);
+                emit SetBreaker(ilks[i], clip);
             } catch Error(string memory reason) {
-                // If the reason is empty, it means the contract is most likely not a Clip instance.
-                require(bytes(reason).length == 0, reason);
+                // If the spell does not have the hat, it cannot be executed, so we must halt it.
+                require(!_strEq(reason, "ClipperMom/not-authorized"), reason);
+                // Whatever other reason we just ignore and move on.
+                emit Fail(ilks[i], clip, bytes(reason));
+            } catch (bytes memory reason) {
+                emit Fail(ilks[i], clip, reason);
             }
         }
     }
@@ -101,26 +109,38 @@ contract MultiClipBreakerSpell is DssEmergencySpell {
     function done() external view returns (bool) {
         bytes32[] memory ilks = ilkReg.list();
         for (uint256 i = 0; i < ilks.length; i++) {
-            bytes32 ilk = ilks[i];
-            address clip = ilkReg.xlip(ilk);
+            address clip = ilkReg.xlip(ilks[i]);
 
-            if (clip == address(0)) continue;
+            if (clip == address(0)) {
+                continue;
+            }
 
             try ClipLike(clip).wards(address(clipperMom)) returns (uint256 ward) {
                 // Ignore Clip instances that have not relied on ClipperMom.
-                if (ward == 0) continue;
+                if (ward == 0) {
+                    continue;
+                }
             } catch {
-                // If The call failed, it means the contract is most likely not a Clip instance, so it can be ignored.
+                // If the call failed, it means the contract is most likely not a Clip instance, so it can be ignored.
                 continue;
             }
 
             try ClipLike(clip).stopped() returns (uint256 stopped) {
-                if (stopped != BREAKER_LEVEL) return false;
+                if (stopped != BREAKER_LEVEL) {
+                    return false;
+                }
             } catch {
                 // If the call failed, it means the contract is most likely not a Clip instance, so it can be ignored.
                 continue;
             }
         }
         return true;
+    }
+
+    /**
+     * @notice Checks if strings a and b are the same.
+     */
+    function _strEq(string memory a, string memory b) internal pure returns (bool) {
+        return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 }

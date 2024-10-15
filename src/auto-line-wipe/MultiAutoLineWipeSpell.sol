@@ -36,11 +36,19 @@ interface AutoLineLike {
         returns (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc);
 }
 
+interface VatLike {
+    function ilks(bytes32 ilk)
+        external
+        view
+        returns (uint256 Art, uint256 rate, uint256 spot, uint256 line, uint256 dust);
+}
+
 contract MultiAutoLineWipeSpell is DssEmergencySpell {
     string public constant override description = "Emergency Spell | Multi AutoLine Wipe";
 
     IlkRegistryLike public immutable ilkReg = IlkRegistryLike(_log.getAddress("ILK_REGISTRY"));
     LineMomLike public immutable lineMom = LineMomLike(_log.getAddress("LINE_MOM"));
+    VatLike public immutable vat = VatLike(_log.getAddress("MCD_VAT"));
 
     event Wipe(bytes32 indexed ilk);
 
@@ -71,7 +79,9 @@ contract MultiAutoLineWipeSpell is DssEmergencySpell {
      */
     function _doWipe(bytes32[] memory ilks) internal {
         for (uint256 i = 0; i < ilks.length; i++) {
-            if (lineMom.ilks(ilks[i]) == 0) continue;
+            if (lineMom.ilks(ilks[i]) == 0) {
+                continue;
+            }
 
             LineMomLike(lineMom).wipe(ilks[i]);
             emit Wipe(ilks[i]);
@@ -86,11 +96,14 @@ contract MultiAutoLineWipeSpell is DssEmergencySpell {
         AutoLineLike autoLine = AutoLineLike(lineMom.autoLine());
         bytes32[] memory ilks = ilkReg.list();
         for (uint256 i = 0; i < ilks.length; i++) {
-            if (lineMom.ilks(ilks[i]) == 0) continue;
+            if (lineMom.ilks(ilks[i]) == 0) {
+                continue;
+            }
 
+            (,,, uint256 line,) = vat.ilks(ilks[i]);
             (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc) = autoLine.ilks(ilks[i]);
-            // If any of the entries in auto-line has non zero values, then the spell can be cast again.
-            if (!(maxLine == 0 && gap == 0 && ttl == 0 && last == 0 && lastInc == 0)) {
+            // If any of the entries in auto-line or vat line has non zero values, then the spell can be cast again.
+            if (!(line == 0 && maxLine == 0 && gap == 0 && ttl == 0 && last == 0 && lastInc == 0)) {
                 return false;
             }
         }

@@ -21,11 +21,13 @@ import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
 import {SingleOsmStopFactory} from "./SingleOsmStopSpell.sol";
 
 interface OsmMomLike {
-    function osms(bytes32) external view returns (address);
+    function osms(bytes32 ilk) external view returns (address);
+    function setOsm(bytes32 ilk, address osm) external;
 }
 
 interface OsmLike {
     function stopped() external view returns (uint256);
+    function deny(address who) external;
 }
 
 contract SingleOsmStopSpellTest is DssTest {
@@ -66,6 +68,22 @@ contract SingleOsmStopSpellTest is DssTest {
 
         assertEq(osm.stopped(), 1, "after: oracle not frozen");
         assertTrue(spell.done(), "after: spell not done");
+    }
+
+    function testDoneWhenOsmIsNotAddedToOsmMom() public {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.startPrank(pauseProxy);
+        osmMom.setOsm(ilk, address(0));
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenOsmMomIsNotWardOnOsm() public {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        osm.deny(address(osmMom));
+
+        assertTrue(spell.done(), "spell not done");
     }
 
     function testRevertOsmStopWhenItDoesNotHaveTheHat() public {

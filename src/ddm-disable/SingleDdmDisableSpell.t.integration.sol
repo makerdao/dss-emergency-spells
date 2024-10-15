@@ -30,6 +30,7 @@ interface DdmHubLike {
 
 interface DdmPlanLike {
     function active() external view returns (bool);
+    function deny(address who) external;
 }
 
 contract SingleDdmDisableSpellTest is DssTest {
@@ -72,6 +73,14 @@ contract SingleDdmDisableSpellTest is DssTest {
 
         assertFalse(plan.active(), "after: plan not disabled");
         assertTrue(spell.done(), "after: spell not done");
+    }
+
+    function testDoneWhenDdmMomIsNotWardOnDdmPlan() public {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        plan.deny(address(ddmMom));
+
+        assertTrue(spell.done(), "spell not done");
     }
 
     function testRevertDdmDisableWhenItDoesNotHaveTheHat() public {

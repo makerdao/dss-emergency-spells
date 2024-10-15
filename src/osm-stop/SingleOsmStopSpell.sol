@@ -24,6 +24,7 @@ interface OsmMomLike {
 
 interface OsmLike {
     function stopped() external view returns (uint256);
+    function wards(address who) external view returns (uint256);
 }
 
 contract SingleOsmStopSpell is DssEmergencySpell {
@@ -48,9 +49,35 @@ contract SingleOsmStopSpell is DssEmergencySpell {
     /**
      * @notice Returns whether the spell is done or not.
      * @dev Checks if the OSM instance is stopped.
+     *      The spell would revert if any of the following condtions holds:
+     *          1. OSM has not been added to OSMMom the spell would revert.
+     *          2. OSMom is not a ward of OSM
+     *          3. OSM does not implement the `stopped()` function
+     *      In this case, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
-        return OsmLike(osmMom.osms(ilk)).stopped() == 1;
+        address osm = osmMom.osms(ilk);
+
+        if (osm == address(0)) {
+            return true;
+        }
+
+        try OsmLike(osm).wards(address(osmMom)) returns (uint256 ward) {
+            // Ignore Osm instances that have not relied on OsmMom.
+            if (ward == 0) {
+                return true;
+            }
+        } catch {
+            // If the call failed, it means the contract is most likely not an OSM instance.
+            return true;
+        }
+
+        try OsmLike(osm).stopped() returns (uint256 stopped) {
+            return stopped == 1;
+        } catch {
+            // If the call failed, it means the contract is most likely not an OSM instance.
+            return true;
+        }
     }
 }
 

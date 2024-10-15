@@ -23,6 +23,7 @@ interface ClipperMomLike {
 
 interface ClipLike {
     function stopped() external view returns (uint256);
+    function wards(address who) external view returns (uint256);
 }
 
 interface IlkRegistryLike {
@@ -58,9 +59,34 @@ contract SingleClipBreakerSpell is DssEmergencySpell {
     /**
      * @notice Returns whether the spell is done or not.
      * @dev Checks if the Clip instance has stopped = 3.
+     *      The spell would revert if any of the following condtions holds:
+     *          1. Clip is set to address(0)
+     *          2. ClipperMom is not a ward on Clip
+     *          3. Clip does not implement the `stopped` function
+     *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
-        return ClipLike(ilkReg.xlip(ilk)).stopped() == BREAKER_LEVEL;
+        address clip = ilkReg.xlip(ilk);
+        if (clip == address(0)) {
+            return true;
+        }
+
+        try ClipLike(clip).wards(address(clipperMom)) returns (uint256 ward) {
+            // Ignore Clip instances that have not relied on ClipperMom.
+            if (ward == 0) {
+                return true;
+            }
+        } catch {
+            // If the call failed, it means the contract is most likely not a Clip instance.
+            return true;
+        }
+
+        try ClipLike(clip).stopped() returns (uint256 stopped) {
+            return stopped == BREAKER_LEVEL;
+        } catch {
+            // If the call failed, it means the contract is most likely not a Clip instance.
+            return true;
+        }
     }
 }
 

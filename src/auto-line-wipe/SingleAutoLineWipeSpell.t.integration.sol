@@ -27,14 +27,23 @@ interface AutoLineLike {
         returns (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc);
 }
 
+interface LineMomLike {
+    function delIlk(bytes32 ilk) external;
+}
+
+interface VatLike {
+    function file(bytes32 ilk, bytes32 what, uint256 data) external;
+}
+
 contract SingleAutoLineWipeSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
     DssInstance dss;
+    VatLike vat;
     address chief;
     bytes32 ilk = "ETH-A";
-    address lineMom;
+    LineMomLike lineMom;
     AutoLineLike autoLine;
     SingleAutoLineWipeFactory factory;
     DssEmergencySpellLike spell;
@@ -45,7 +54,8 @@ contract SingleAutoLineWipeSpellTest is DssTest {
         dss = MCD.loadFromChainlog(CHAINLOG);
         MCD.giveAdminAccess(dss);
         chief = dss.chainlog.getAddress("MCD_ADM");
-        lineMom = dss.chainlog.getAddress("LINE_MOM");
+        vat = VatLike(dss.chainlog.getAddress("MCD_VAT"));
+        lineMom = LineMomLike(dss.chainlog.getAddress("LINE_MOM"));
         autoLine = AutoLineLike(dss.chainlog.getAddress("MCD_IAM_AUTO_LINE"));
         factory = new SingleAutoLineWipeFactory();
         spell = DssEmergencySpellLike(factory.deploy(ilk));
@@ -69,6 +79,25 @@ contract SingleAutoLineWipeSpellTest is DssTest {
         assertEq(maxLine, 0, "after: auto-line not wiped (maxLine)");
         assertEq(gap, 0, "after: auto-line not wiped (gap)");
         assertTrue(spell.done(), "after: spell not done");
+    }
+
+    function testDoneWhenIlkIsNotAddedToLineMom() public {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        lineMom.delIlk(ilk);
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenAutoLineIsNotActiveButLineIsNonZero() public {
+        spell.schedule();
+        assertTrue(spell.done(), "before: spell not done");
+
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        vat.file(ilk, "line", 10 ** 45);
+
+        assertFalse(spell.done(), "after: spell still done");
     }
 
     function testRevertAutoLineWipeWhenItDoesNotHaveTheHat() public {

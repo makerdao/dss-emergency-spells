@@ -40,6 +40,7 @@ contract MultiOsmStopSpell is DssEmergencySpell {
     OsmMomLike public immutable osmMom = OsmMomLike(_log.getAddress("OSM_MOM"));
 
     event Stop(bytes32 indexed ilk, address indexed osm);
+    event Fail(bytes32 indexed ilk, address indexed osm, bytes reason);
 
     /**
      * @notice Stops, when possible, all OSMs that can be found through the ilk registry.
@@ -70,22 +71,30 @@ contract MultiOsmStopSpell is DssEmergencySpell {
         for (uint256 i = 0; i < ilks.length; i++) {
             address osm = osmMom.osms(ilks[i]);
 
-            if (osm == address(0)) continue;
+            if (osm == address(0)) {
+                continue;
+            }
 
             try OsmLike(osm).wards(address(osmMom)) returns (uint256 ward) {
-                // Ignore Osm instances that have not relied on OsmMom.
-                if (ward == 0) continue;
-            } catch Error(string memory reason) {
-                // If the reason is empty, it means the contract is most likely not an OSM instance.
-                require(bytes(reason).length == 0, reason);
+                if (ward == 0) {
+                    emit Fail(ilks[i], osm, "osmMom-not-ward");
+                    continue;
+                }
+            } catch (bytes memory reason) {
+                emit Fail(ilks[i], osm, reason);
+                continue;
             }
 
             // There might be some duplicate calls to the same OSM, however they are idempotent.
             try OsmMomLike(osmMom).stop(ilks[i]) {
                 emit Stop(ilks[i], osm);
             } catch Error(string memory reason) {
-                // If the reason is empty, it means the contract is most likely not an OSM instance.
-                require(bytes(reason).length == 0, reason);
+                // If the spell does not have the hat, it cannot be executed, so we must halt it.
+                require(!_strEq(reason, "osm-mom/not-authorized"), reason);
+                // Whatever other reason we just ignore and move on.
+                emit Fail(ilks[i], osm, bytes(reason));
+            } catch (bytes memory reason) {
+                emit Fail(ilks[i], osm, reason);
             }
         }
     }
@@ -99,11 +108,15 @@ contract MultiOsmStopSpell is DssEmergencySpell {
         for (uint256 i = 0; i < ilks.length; i++) {
             address osm = osmMom.osms(ilks[i]);
 
-            if (osm == address(0)) continue;
+            if (osm == address(0)) {
+                continue;
+            }
 
             try OsmLike(osm).wards(address(osmMom)) returns (uint256 ward) {
                 // Ignore Osm instances that have not relied on OsmMom.
-                if (ward == 0) continue;
+                if (ward == 0) {
+                    continue;
+                }
             } catch {
                 // If the call failed, it means the contract is most likely not an OSM instance, so it can be ignored.
                 continue;
@@ -111,12 +124,21 @@ contract MultiOsmStopSpell is DssEmergencySpell {
 
             try OsmLike(osm).stopped() returns (uint256 stopped) {
                 // If any of the OSMs that match the conditions is not stopped, the spell was not executed yet.
-                if (stopped == 0) return false;
+                if (stopped == 0) {
+                    return false;
+                }
             } catch {
                 // If the call failed, it means the contract is most likely not an OSM instance, so it can be ignored.
                 continue;
             }
         }
         return true;
+    }
+
+    /**
+     * @notice Checks if strings a and b are the same.
+     */
+    function _strEq(string memory a, string memory b) internal pure returns (bool) {
+        return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 }

@@ -147,6 +147,8 @@ contract MultiClipBreakerSpellTest is DssTest {
 
         _checkClipMaxStoppedStatus({ilks: ilkReg.list(), maxExpected: 2});
 
+        vm.expectEmit(true, true, true, true);
+        emit Fail("ETH-A", clipEthA, "clipperMom-not-ward");
         spell.schedule();
 
         _checkClipStoppedStatus({ilks: ilkReg.list(), expected: 3});
@@ -186,4 +188,6 @@ contract MultiClipBreakerSpellTest is DssTest {
             assertEq(ClipLike(clip).stopped(), expected, string(abi.encodePacked("invalid stopped status: ", ilks[i])));
         }
     }
+
+    event Fail(bytes32 indexed ilk, address indexed clip, bytes reason);
 }

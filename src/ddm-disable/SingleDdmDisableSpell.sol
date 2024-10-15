@@ -23,10 +23,11 @@ interface DdmMomLike {
 
 interface DdmPlanLike {
     function active() external view returns (bool);
+    function wards(address who) external view returns (uint256);
 }
 
 interface DdmHubLike {
-    function plan(bytes32 ilk) external view returns (address plan);
+    function plan(bytes32 ilk) external view returns (address);
 }
 
 contract SingleDdmDisableSpell is DssEmergencySpell {
@@ -53,9 +54,16 @@ contract SingleDdmDisableSpell is DssEmergencySpell {
     /**
      * @notice Returns whether the spell is done or not.
      * @dev Checks if the plan instance has stopped = 3.
+     *      The spell would revert if any of the following condtions holds:
+     *          1. DDMMom is not a ward of DDMHub, the spell would revert.
+     *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
-        return DdmPlanLike(ddmHub.plan(ilk)).active() == false;
+        DdmPlanLike plan = DdmPlanLike(ddmHub.plan(ilk));
+        if (plan.wards(address(ddmMom)) == 0) {
+            return true;
+        }
+        return plan.active() == false;
     }
 }
 

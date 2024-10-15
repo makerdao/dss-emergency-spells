@@ -22,6 +22,7 @@ import {SingleClipBreakerFactory} from "./SingleClipBreakerSpell.sol";
 
 interface IlkRegistryLike {
     function xlip(bytes32 ilk) external view returns (address);
+    function file(bytes32 ilk, bytes32 what, address data) external;
 }
 
 interface ClipperMomLike {
@@ -72,6 +73,14 @@ contract SingleClipBreakerSpellTest is DssTest {
 
         assertEq(clip.stopped(), 3, "after: clip not stopped");
         assertTrue(spell.done(), "after: spell not done");
+    }
+
+    function testDoneWhenClipIsNotSetInIlkReg() public {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        ilkReg.file(ilk, "xlip", address(0));
+
+        assertTrue(spell.done(), "spell not done");
     }
 
     function testRevertClipBreakerWhenItDoesNotHaveTheHat() public {

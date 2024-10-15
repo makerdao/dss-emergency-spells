@@ -35,6 +35,11 @@ interface AutoLineLike {
         external
         view
         returns (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc);
+    function remIlk(bytes32 ilk) external;
+}
+
+interface VatLike {
+    function file(bytes32 ilk, bytes32 what, uint256 data) external;
 }
 
 contract MultiAutoLineWipeSpellTest is DssTest {
@@ -43,9 +48,10 @@ contract MultiAutoLineWipeSpellTest is DssTest {
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
     DssInstance dss;
     address chief;
+    VatLike vat;
+    IlkRegistryLike ilkReg;
     LineMomLike lineMom;
     AutoLineLike autoLine;
-    IlkRegistryLike ilkReg;
     MultiAutoLineWipeSpell spell;
 
     mapping(bytes32 => bool) ilksToIgnore;
@@ -56,9 +62,10 @@ contract MultiAutoLineWipeSpellTest is DssTest {
         dss = MCD.loadFromChainlog(CHAINLOG);
         MCD.giveAdminAccess(dss);
         chief = dss.chainlog.getAddress("MCD_ADM");
+        vat = VatLike(dss.chainlog.getAddress("MCD_VAT"));
+        ilkReg = IlkRegistryLike(dss.chainlog.getAddress("ILK_REGISTRY"));
         lineMom = LineMomLike(dss.chainlog.getAddress("LINE_MOM"));
         autoLine = AutoLineLike(lineMom.autoLine());
-        ilkReg = IlkRegistryLike(dss.chainlog.getAddress("ILK_REGISTRY"));
         spell = new MultiAutoLineWipeSpell();
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
@@ -120,6 +127,17 @@ contract MultiAutoLineWipeSpellTest is DssTest {
 
         // Sanity check: the test iterated over the entire ilk registry.
         _checkAutoLineWipedStatus({ilks: ilkReg.list(), expected: true});
+    }
+
+    function testDoneWhenAutoLineIsNotActiveButLineIsNonZero() public {
+        spell.schedule();
+        assertTrue(spell.done(), "before: spell not done");
+
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        vat.file("ETH-A", "line", 10 ** 45);
+
+        assertFalse(spell.done(), "after: spell still done");
     }
 
     function testRevertMultiOracleStopWhenItDoesNotHaveTheHat() public {

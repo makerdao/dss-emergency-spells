@@ -31,6 +31,7 @@ interface ClipperMomLike {
 
 interface ClipLike {
     function stopped() external view returns (uint256);
+    function deny(address who) external;
 }
 
 contract SingleClipBreakerSpellTest is DssTest {
@@ -41,7 +42,7 @@ contract SingleClipBreakerSpellTest is DssTest {
     address chief;
     IlkRegistryLike ilkReg;
     bytes32 ilk = "ETH-A";
-    ClipperMomLike clipMom;
+    ClipperMomLike clipperMom;
     ClipLike clip;
     SingleClipBreakerFactory factory;
     DssEmergencySpellLike spell;
@@ -53,7 +54,7 @@ contract SingleClipBreakerSpellTest is DssTest {
         MCD.giveAdminAccess(dss);
         chief = dss.chainlog.getAddress("MCD_ADM");
         ilkReg = IlkRegistryLike(dss.chainlog.getAddress("ILK_REGISTRY"));
-        clipMom = ClipperMomLike(dss.chainlog.getAddress("CLIPPER_MOM"));
+        clipperMom = ClipperMomLike(dss.chainlog.getAddress("CLIPPER_MOM"));
         clip = ClipLike(ilkReg.xlip(ilk));
         factory = new SingleClipBreakerFactory();
         spell = DssEmergencySpellLike(factory.deploy(ilk));
@@ -79,6 +80,14 @@ contract SingleClipBreakerSpellTest is DssTest {
         address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
         ilkReg.file(ilk, "xlip", address(0));
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenClipperMomIsNotWardInClip() public {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        clip.deny(address(clipperMom));
 
         assertTrue(spell.done(), "spell not done");
     }

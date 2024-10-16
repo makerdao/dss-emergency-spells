@@ -28,6 +28,7 @@ interface AutoLineLike {
         external
         view
         returns (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc);
+    function wards(address who) external view returns (uint256);
 }
 
 interface VatLike {
@@ -40,6 +41,7 @@ interface VatLike {
 
 contract SingleAutoLineWipeSpell is DssEmergencySpell {
     LineMomLike public immutable lineMom = LineMomLike(_log.getAddress("LINE_MOM"));
+    AutoLineLike public immutable autoLine = AutoLineLike(LineMomLike(_log.getAddress("LINE_MOM")).autoLine());
     VatLike public immutable vat = VatLike(_log.getAddress("MCD_VAT"));
     bytes32 public immutable ilk;
 
@@ -62,18 +64,18 @@ contract SingleAutoLineWipeSpell is DssEmergencySpell {
      * @notice Returns whether the spell is done or not.
      * @dev Checks if the ilk has been wiped from auto-line and vat line is zero.
      *      The spell would revert if any of the following condtions holds:
-     *          1. The ilk has not been added to AutoLine
-     *          2. LineMom is not ward on Vat
+     *          1. LineMom is not ward on Vat
+     *          2. LineMom is not ward on AutoLine
+     *          3. The ilk has not been added to AutoLine
      *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
-        if (vat.wards(address(lineMom)) == 0 || lineMom.ilks(ilk) == 0) {
+        if (vat.wards(address(lineMom)) == 0 || autoLine.wards(address(lineMom)) == 0 || lineMom.ilks(ilk) == 0) {
             return true;
         }
 
         (,,, uint256 line,) = vat.ilks(ilk);
-        (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc) =
-            AutoLineLike(lineMom.autoLine()).ilks(ilk);
+        (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc) = autoLine.ilks(ilk);
 
         return line == 0 && maxLine == 0 && gap == 0 && ttl == 0 && last == 0 && lastInc == 0;
     }

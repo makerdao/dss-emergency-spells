@@ -34,6 +34,7 @@ interface AutoLineLike {
         external
         view
         returns (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc);
+    function wards(address who) external view returns (uint256);
 }
 
 interface VatLike {
@@ -41,6 +42,7 @@ interface VatLike {
         external
         view
         returns (uint256 Art, uint256 rate, uint256 spot, uint256 line, uint256 dust);
+    function wards(address who) external view returns (uint256);
 }
 
 contract MultiAutoLineWipeSpell is DssEmergencySpell {
@@ -48,6 +50,7 @@ contract MultiAutoLineWipeSpell is DssEmergencySpell {
 
     IlkRegistryLike public immutable ilkReg = IlkRegistryLike(_log.getAddress("ILK_REGISTRY"));
     LineMomLike public immutable lineMom = LineMomLike(_log.getAddress("LINE_MOM"));
+    AutoLineLike public immutable autoLine = AutoLineLike(LineMomLike(_log.getAddress("LINE_MOM")).autoLine());
     VatLike public immutable vat = VatLike(_log.getAddress("MCD_VAT"));
 
     event Wipe(bytes32 indexed ilk);
@@ -93,10 +96,10 @@ contract MultiAutoLineWipeSpell is DssEmergencySpell {
      * @dev Checks if all possible ilks from the ilk registry are wiped from auto-line.
      */
     function done() external view returns (bool) {
-        AutoLineLike autoLine = AutoLineLike(lineMom.autoLine());
         bytes32[] memory ilks = ilkReg.list();
         for (uint256 i = 0; i < ilks.length; i++) {
-            if (lineMom.ilks(ilks[i]) == 0) {
+            if (vat.wards(address(lineMom)) == 0 || autoLine.wards(address(lineMom)) == 0 || lineMom.ilks(ilks[i]) == 0)
+            {
                 continue;
             }
 

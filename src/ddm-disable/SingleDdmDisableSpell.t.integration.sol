@@ -26,6 +26,7 @@ interface DdmMomLike {
 
 interface DdmHubLike {
     function plan(bytes32 ilk) external view returns (address);
+    function file(bytes32 ilk, bytes32 what, address data) external;
 }
 
 interface DdmPlanLike {
@@ -79,6 +80,14 @@ contract SingleDdmDisableSpellTest is DssTest {
         address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
         plan.deny(address(ddmMom));
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenDdmPlanIsAddressZero() public {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        ddmHub.file(ilk, "plan", address(0));
 
         assertTrue(spell.done(), "spell not done");
     }

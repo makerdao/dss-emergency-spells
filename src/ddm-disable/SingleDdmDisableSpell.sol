@@ -60,9 +60,11 @@ contract SingleDdmDisableSpell is DssEmergencySpell {
      */
     function done() external view returns (bool) {
         DdmPlanLike plan = DdmPlanLike(ddmHub.plan(ilk));
-        if (plan.wards(address(ddmMom)) == 0) {
+
+        if (address(plan) == address(0) || plan.wards(address(ddmMom)) == 0) {
             return true;
         }
+
         return plan.active() == false;
     }
 }

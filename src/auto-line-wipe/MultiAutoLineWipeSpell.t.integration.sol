@@ -16,7 +16,7 @@
 pragma solidity ^0.8.16;
 
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
-import {DssTest, DssInstance, MCD, GodMode} from "dss-test/DssTest.sol";
+import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {MultiAutoLineWipeSpell} from "./MultiAutoLineWipeSpell.sol";
 
 interface LineMomLike {
@@ -35,7 +35,6 @@ interface AutoLineLike {
         external
         view
         returns (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc);
-    function remIlk(bytes32 ilk) external;
 }
 
 interface VatLike {

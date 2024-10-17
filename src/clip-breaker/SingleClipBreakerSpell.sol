@@ -31,7 +31,7 @@ interface IlkRegistryLike {
 }
 
 contract SingleClipBreakerSpell is DssEmergencySpell {
-    /// @dev During an emergency, set the breaker level to 3  to prevent both `kick()`, `redo()` and `take()`.
+    /// @dev During an emergency, set the breaker level to 3 to prevent `kick()`, `redo()` and `take()`.
     uint256 public constant BREAKER_LEVEL = 3;
     /// @dev The delay is not applicable for level 3 breakers, so we set it to zero.
     uint256 public constant BREAKER_DELAY = 0;
@@ -59,7 +59,7 @@ contract SingleClipBreakerSpell is DssEmergencySpell {
     /**
      * @notice Returns whether the spell is done or not.
      * @dev Checks if the Clip instance has stopped = 3.
-     *      The spell would revert if any of the following condtions holds:
+     *      The spell would revert if any of the following conditions holds:
      *          1. Clip is set to address(0)
      *          2. ClipperMom is not a ward on Clip
      *          3. Clip does not implement the `stopped` function

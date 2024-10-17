@@ -77,7 +77,7 @@ contract MultiAutoLineWipeSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice Stops, when possible, all OSMs that can be found from the `ilks` list.
+     * @notice Wipes, when possible, all ilks from the auto-line provided in the `ilks` list.
      * @param ilks The list of ilks to consider.
      */
     function _doWipe(bytes32[] memory ilks) internal {
@@ -86,7 +86,7 @@ contract MultiAutoLineWipeSpell is DssEmergencySpell {
                 continue;
             }
 
-            LineMomLike(lineMom).wipe(ilks[i]);
+            lineMom.wipe(ilks[i]);
             emit Wipe(ilks[i]);
         }
     }

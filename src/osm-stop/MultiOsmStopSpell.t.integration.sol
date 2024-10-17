@@ -16,7 +16,7 @@
 pragma solidity ^0.8.16;
 
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
-import {DssTest, DssInstance, MCD, GodMode} from "dss-test/DssTest.sol";
+import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {MultiOsmStopSpell} from "./MultiOsmStopSpell.sol";
 
 interface OsmMomLike {
@@ -26,7 +26,6 @@ interface OsmMomLike {
 interface OsmLike {
     function src() external view returns (address);
     function stopped() external view returns (uint256);
-    function osms(bytes32 ilk) external view returns (address);
     function wards(address who) external view returns (uint256);
 }
 

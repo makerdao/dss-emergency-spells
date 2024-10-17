@@ -35,7 +35,7 @@ interface ClipLike {
 
 contract MultiClipBreakerSpell is DssEmergencySpell {
     string public constant override description = "Emergency Spell | Multi Clip Breaker";
-    /// @dev During an emergency, set the breaker level to 3  to prevent botyh `kick()`, `redo()` and `take()`.
+    /// @dev During an emergency, set the breaker level to 3  to prevent both `kick()`, `redo()` and `take()`.
     uint256 public constant BREAKER_LEVEL = 3;
     /// @dev The delay is not applicable for level 3 breakers, so we set it to zero.
     uint256 public constant BREAKER_DELAY = 0;

@@ -49,9 +49,9 @@ contract SingleOsmStopSpell is DssEmergencySpell {
     /**
      * @notice Returns whether the spell is done or not.
      * @dev Checks if the OSM instance is stopped.
-     *      The spell would revert if any of the following condtions holds:
+     *      The spell would revert if any of the following conditions holds:
      *          1. OSM has not been added to OSMMom the spell would revert.
-     *          2. OSMom is not a ward of OSM
+     *          2. OSMMom is not a ward of OSM
      *          3. OSM does not implement the `stopped()` function
      *      In this case, it returns `true`, meaning no further action can be taken at the moment.
      */

@@ -131,6 +131,6 @@ has just been scheduled or there is most likely something wrong with the modules
 case where the system naturally achieves the same final state as the spell being scheduled, in which it would be also
 returned `true`.
 
-In other words, if `done() == true`, it means that the actions performed by the spell is not applicable.
+In other words, if `done() == true`, it means that the actions performed by the spell are not applicable.
 
 [spell-done]: https://github.com/makerdao/dss-exec-lib/blob/69b658f35d8618272cd139dfc18c5713caf6b96b/src/DssExec.sol#L43

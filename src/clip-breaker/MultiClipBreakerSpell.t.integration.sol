@@ -16,7 +16,7 @@
 pragma solidity ^0.8.16;
 
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
-import {DssTest, DssInstance, MCD, GodMode} from "dss-test/DssTest.sol";
+import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {MultiClipBreakerSpell} from "./MultiClipBreakerSpell.sol";
 
 interface IlkRegistryLike {

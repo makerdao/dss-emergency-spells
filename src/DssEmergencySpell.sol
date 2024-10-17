@@ -88,7 +88,7 @@ abstract contract DssEmergencySpell is DssEmergencySpellLike {
      * @notice Triggers the emergency actions of the spell.
      * @dev Emergency spells are triggered when scheduled.
      *      This function maintains the name for compatibility with regular spells, however nothing is actually being
-     *      scheduled. Emergency spells take affect immediately, so there is no need to call `pause.plot()`.
+     *      scheduled. Emergency spells take effect immediately, so there is no need to call `pause.plot()`.
      */
     function schedule() external {
         _emergencyActions();

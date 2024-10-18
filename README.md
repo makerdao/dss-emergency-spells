@@ -46,6 +46,8 @@ TBD.
 | Set `Clip` breaker | :white_check_mark: | :white_check_mark: |
 | Disable `DDM`      | :white_check_mark: | :x:                |
 | Stop `OSM`         | :white_check_mark: | :white_check_mark: |
+| Halt `PSM`         | :white_check_mark: | :x:                |
+| Stop `Splitter`    | :x:                | :white_check_mark: |
 
 ### Wipe `AutoLine`
 
@@ -64,6 +66,14 @@ Disables a Direct Deposit Module (`DIRECT_{ID}_PLAN`), preventing further debt f
 ### Stop `OSM`
 
 Stops the specified Oracle Security Module (`PIP_{GEM}`) instances, preventing updates in their price feeds.
+
+### Halt `PSM`
+
+Halts swaps on the `PSM`, with optional direction (only `GEM` buys, only `GEM` sells, both).
+
+### Stop `Splitter`
+
+Disables the smart burn engine.
 
 ## Design
 

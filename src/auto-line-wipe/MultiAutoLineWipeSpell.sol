@@ -94,22 +94,28 @@ contract MultiAutoLineWipeSpell is DssEmergencySpell {
     /**
      * @notice Returns whether the spell is done or not.
      * @dev Checks if all possible ilks from the ilk registry are wiped from auto-line.
+     *      Notice that if no action can be taken (i.e.: missing permissions, invalid config),
+     *      this function will return `true`.
      */
     function done() external view returns (bool) {
+        if (vat.wards(address(lineMom)) == 0 || autoLine.wards(address(lineMom)) == 0) {
+            return true;
+        }
+
         bytes32[] memory ilks = ilkReg.list();
         for (uint256 i = 0; i < ilks.length; i++) {
-            if (vat.wards(address(lineMom)) == 0 || autoLine.wards(address(lineMom)) == 0 || lineMom.ilks(ilks[i]) == 0)
-            {
+            if (lineMom.ilks(ilks[i]) == 0) {
                 continue;
             }
 
             (,,, uint256 line,) = vat.ilks(ilks[i]);
             (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc) = autoLine.ilks(ilks[i]);
-            // If any of the entries in auto-line or vat line has non zero values, then the spell can be cast again.
+            // If any of the entries in auto-line or vat line has non zero values, then the spell is applicable.
             if (!(line == 0 && maxLine == 0 && gap == 0 && ttl == 0 && last == 0 && lastInc == 0)) {
                 return false;
             }
         }
+
         return true;
     }
 }

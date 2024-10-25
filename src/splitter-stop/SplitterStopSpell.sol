@@ -22,6 +22,7 @@ interface SplitterMomLike {
 }
 
 interface SplitterLike {
+    function wards(address) external view returns (uint256);
     function hop() external view returns (uint256);
 }
 
@@ -50,8 +51,27 @@ contract SplitterStopSpell is DssEmergencySpell {
     /**
      * @notice Returns whether the spell is done or not.
      * @dev Checks if `splitter.hop() == type(uint).max` (disabled).
+     *      The spell would revert if any of the following conditions holds:
+     *          1. SplitterMom is not a ward of Splitter
+     *          2. Call to Splitter `hop()` reverts (likely not a Splitter)
+     *      In both cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
-        return splitter.hop() == type(uint256).max;
+        try splitter.wards(address(splitterMom)) returns (uint256 ward) {
+            // Ignore Splitter instances that have not relied on SplitterMom.
+            if (ward == 0) {
+                return true;
+            }
+        } catch {
+            // If the call failed, it means the contract is most likely not a Splitter instance.
+            return true;
+        }
+
+        try splitter.hop() returns (uint256 hop) {
+            return hop == type(uint256).max;
+        } catch {
+            // If the call failed, it means the contract is most likely not a Splitter instance.
+            return true;
+        }
     }
 }

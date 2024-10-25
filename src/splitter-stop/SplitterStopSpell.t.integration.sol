@@ -3,7 +3,25 @@ pragma solidity ^0.8.16;
 
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD, GodMode} from "dss-test/DssTest.sol";
-import {SplitterStopSpell, SplitterLike} from "./SplitterStopSpell.sol";
+import {SplitterStopSpell} from "./SplitterStopSpell.sol";
+
+interface SplitterLike {
+    function rely(address) external;
+    function deny(address) external;
+    function hop() external view returns (uint256);
+}
+
+contract MockAuth {
+    function wards(address) external pure returns (uint256) {
+        return 1;
+    }
+}
+
+contract MockSplitterHopReverts is MockAuth {
+    function hop() external pure {
+        revert();
+    }
+}
 
 contract SplitterStopSpellTest is DssTest {
     using stdStorage for StdStorage;
@@ -11,6 +29,7 @@ contract SplitterStopSpellTest is DssTest {
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
     DssInstance dss;
     address chief;
+    address splitterMom;
     SplitterLike splitter;
     SplitterStopSpell spell;
 
@@ -20,6 +39,7 @@ contract SplitterStopSpellTest is DssTest {
         dss = MCD.loadFromChainlog(CHAINLOG);
         MCD.giveAdminAccess(dss);
         chief = dss.chainlog.getAddress("MCD_ADM");
+        splitterMom = dss.chainlog.getAddress("SPLITTER_MOM");
         splitter = SplitterLike(dss.chainlog.getAddress("MCD_SPLIT"));
         spell = new SplitterStopSpell();
 
@@ -41,6 +61,26 @@ contract SplitterStopSpellTest is DssTest {
         uint256 postHop = splitter.hop();
         assertEq(postHop, type(uint256).max, "after: Splitter not stopped");
         assertTrue(spell.done(), "after: spell not done");
+    }
+
+    function testDoneWhenSplitterMomIsNotWardInSplitter() public {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        splitter.deny(splitterMom);
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenSplitterDoesNotImplementHop() public {
+        vm.etch(address(splitter), address(new MockAuth()).code);
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenLiteSplitterHopReverts() public {
+        vm.etch(address(splitter), address(new MockSplitterHopReverts()).code);
+
+        assertTrue(spell.done(), "spell not done");
     }
 
     function testRevertSplitterStopWhenItDoesNotHaveTheHat() public {

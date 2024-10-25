@@ -4,7 +4,26 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD, GodMode} from "dss-test/DssTest.sol";
 import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {SingleLitePsmHaltSpellFactory, LitePsmLike, Flow} from "./SingleLitePsmHaltSpell.sol";
+import {SingleLitePsmHaltSpellFactory, Flow} from "./SingleLitePsmHaltSpell.sol";
+
+interface LitePsmLike {
+    function deny(address) external;
+    function tin() external view returns (uint256);
+    function tout() external view returns (uint256);
+    function HALTED() external view returns (uint256);
+}
+
+contract MockAuth {
+    function wards(address) external pure returns (uint256) {
+        return 1;
+    }
+}
+
+contract MockPsmHaltedReverts is MockAuth {
+    function HALTED() external pure {
+        revert();
+    }
+}
 
 contract SingleLitePsmHaltSpellTest is DssTest {
     using stdStorage for StdStorage;
@@ -72,6 +91,30 @@ contract SingleLitePsmHaltSpellTest is DssTest {
         }
 
         assertTrue(spell.done(), "after: spell not done");
+    }
+
+    function testDoneWhenLitePsmMomIsNotWardInPsm() public {
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(psm), Flow.BUY));
+
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        vm.prank(pauseProxy);
+        psm.deny(address(litePsmMom));
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenLitePsmDoesNotImplementHalted() public {
+        psm = LitePsmLike(address(new MockAuth()));
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(psm), Flow.BUY));
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenLitePsmHaltedReverts() public {
+        psm = LitePsmLike(address(new MockPsmHaltedReverts()));
+        DssEmergencySpellLike spell = DssEmergencySpellLike(factory.deploy(address(psm), Flow.BUY));
+
+        assertTrue(spell.done(), "spell not done");
     }
 
     function testRevertPsmHaltWhenItDoesNotHaveTheHat() public {

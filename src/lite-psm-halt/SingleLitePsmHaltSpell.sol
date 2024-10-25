@@ -28,6 +28,7 @@ interface LitePsmMomLike {
 }
 
 interface LitePsmLike {
+    function wards(address) external view returns (uint256);
     function tin() external view returns (uint256);
     function tout() external view returns (uint256);
     function HALTED() external view returns (uint256);
@@ -73,19 +74,36 @@ contract SingleLitePsmHaltSpell is DssEmergencySpell {
     /**
      * @notice Returns whether the spell is done or not.
      * @dev Checks if the swaps have been halted on the psm.
+     *      The spell would revert if any of the following conditions holds:
+     *          1. LitePsmMom is not a ward of LitePsm
+     *          2. Call to LitePsm `HALTED()` reverts (likely not a LitePsm)
+     *      In both cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
-        uint256 halted = LitePsmLike(psm).HALTED();
-
-        if (flow == Flow.SELL || flow == Flow.BOTH) {
-            if (LitePsmLike(psm).tin() != halted) return false;
+        try LitePsmLike(psm).wards(address(litePsmMom)) returns (uint256 ward) {
+            // Ignore LitePsm instances that have not relied on LitePsmMom.
+            if (ward == 0) {
+                return true;
+            }
+        } catch {
+            // If the call failed, it means the contract is most likely not a LitePsm instance.
+            return true;
         }
 
-        if (flow == Flow.BUY || flow == Flow.BOTH) {
-            if (LitePsmLike(psm).tout() != halted) return false;
-        }
+        try LitePsmLike(psm).HALTED() returns (uint256 halted) {
+            if (flow == Flow.SELL || flow == Flow.BOTH) {
+                if (LitePsmLike(psm).tin() != halted) return false;
+            }
 
-        return true;
+            if (flow == Flow.BUY || flow == Flow.BOTH) {
+                if (LitePsmLike(psm).tout() != halted) return false;
+            }
+
+            return true;
+        } catch {
+            // If the call failed, it means the contract is most likely not a LitePsm instance.
+            return true;
+        }
     }
 }
 

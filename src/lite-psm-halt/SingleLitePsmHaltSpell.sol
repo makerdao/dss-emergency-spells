@@ -32,6 +32,7 @@ interface LitePsmLike {
     function tin() external view returns (uint256);
     function tout() external view returns (uint256);
     function HALTED() external view returns (uint256);
+    function ilk() external view returns (bytes32);
 }
 
 /// @title Lite PSM Halt Emergency Spell
@@ -42,13 +43,13 @@ interface LitePsmLike {
 /// @custom:bounties []
 contract SingleLitePsmHaltSpell is DssEmergencySpell {
     LitePsmMomLike public immutable litePsmMom = LitePsmMomLike(_log.getAddress("LITE_PSM_MOM"));
-    address public immutable psm;
+    LitePsmLike public immutable psm;
     Flow public immutable flow;
 
     event Halt(Flow what);
 
     constructor(address _psm, Flow _flow) {
-        psm = _psm;
+        psm = LitePsmLike(_psm);
         flow = _flow;
     }
 
@@ -60,14 +61,14 @@ contract SingleLitePsmHaltSpell is DssEmergencySpell {
     }
 
     function description() external view returns (string memory) {
-        return string(abi.encodePacked("Emergency Spell | MCD_LITE_PSM_USDC_A halt: ", _flowToString(flow)));
+        return string(abi.encodePacked("Emergency Spell | ", psm.ilk(), " | halt: ", _flowToString(flow)));
     }
 
     /**
      * @notice Halts trading on LitePSM
      */
     function _emergencyActions() internal override {
-        litePsmMom.halt(psm, flow);
+        litePsmMom.halt(address(psm), flow);
         emit Halt(flow);
     }
 
@@ -80,7 +81,7 @@ contract SingleLitePsmHaltSpell is DssEmergencySpell {
      *      In both cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
-        try LitePsmLike(psm).wards(address(litePsmMom)) returns (uint256 ward) {
+        try psm.wards(address(litePsmMom)) returns (uint256 ward) {
             // Ignore LitePsm instances that have not relied on LitePsmMom.
             if (ward == 0) {
                 return true;
@@ -90,16 +91,15 @@ contract SingleLitePsmHaltSpell is DssEmergencySpell {
             return true;
         }
 
-        try LitePsmLike(psm).HALTED() returns (uint256 halted) {
-            if (flow == Flow.SELL || flow == Flow.BOTH) {
-                if (LitePsmLike(psm).tin() != halted) return false;
+        try psm.HALTED() returns (uint256 halted) {
+            if (flow == Flow.SELL) {
+                return psm.tin() == halted;
+            }
+            if (flow == Flow.BUY) {
+                return psm.tout() == halted;
             }
 
-            if (flow == Flow.BUY || flow == Flow.BOTH) {
-                if (LitePsmLike(psm).tout() != halted) return false;
-            }
-
-            return true;
+            return psm.tin() == halted && psm.tout() == halted;
         } catch {
             // If the call failed, it means the contract is most likely not a LitePsm instance.
             return true;

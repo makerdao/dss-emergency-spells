@@ -33,7 +33,7 @@ interface SplitterLike {
 /// @custom:auditors []
 /// @custom:bounties []
 contract SplitterStopSpell is DssEmergencySpell {
-    string public constant override description = "Emergency Spell | Disable Splitter";
+    string public constant override description = "Emergency Spell | Stop Splitter";
 
     SplitterMomLike public immutable splitterMom = SplitterMomLike(_log.getAddress("SPLITTER_MOM"));
     SplitterLike public immutable splitter = SplitterLike(_log.getAddress("MCD_SPLIT"));

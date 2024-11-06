@@ -40,12 +40,12 @@ TBD.
 
 ## Implemented Actions
 
-| Description        | Single ilk         | Multi ilk          |
-| :----------        | :--------:         | :-------:          |
-| Wipe `AutoLine`    | :white_check_mark: | :white_check_mark: |
-| Set `Clip` breaker | :white_check_mark: | :white_check_mark: |
-| Disable `DDM`      | :white_check_mark: | :x:                |
-| Stop `OSM`         | :white_check_mark: | :white_check_mark: |
+| Description        | Single ilk         | Multi ilk          | Related ilks       |
+| :----------        | :--------:         | :-------:          | :-------:          |
+| Wipe `AutoLine`    | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| Set `Clip` breaker | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| Disable `DDM`      | :white_check_mark: | :x:                | :x:                |
+| Stop `OSM`         | :white_check_mark: | :white_check_mark: | :x:                |
 
 ### Wipe `AutoLine`
 
@@ -107,10 +107,11 @@ constructor.</sub>
 
 [spell-tag]: https://github.com/makerdao/dss-exec-lib/blob/69b658f35d8618272cd139dfc18c5713caf6b96b/src/DssExec.sol#L75
 
-Some types of emergency spells may come in 2 flavors:
+Some types of emergency spells may come in 3 flavors:
 
-1. Single ilk: applies the desired spell action for a single pre-defined ilk.
-1. Multi ilk: applies the desired spell action for all applicable ilks.
+1. Single-ilk: applies the desired spell action to a single pre-defined ilk.
+1. Multi-ilk: applies the desired spell action to all applicable ilks.
+1. Hardcoded Multi-ilk: applies the desired spell action to a hardcoded list of retlated ilks (i.e.: `ETH-A`, `ETH-B` and `ETH-C`)
 
 Furthermore, this repo provides on-chain factories for single ilk emergency spells to make it easier to deploy for new
 ilks.

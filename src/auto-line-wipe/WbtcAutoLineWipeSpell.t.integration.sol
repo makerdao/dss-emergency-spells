@@ -96,7 +96,9 @@ contract WbtcAutoLineWipeSpellTest is DssTest {
 
         vm.expectEmit(true, true, true, false);
         emit Wipe(WBTC_A);
+        vm.expectEmit(true, true, true, false);
         emit Wipe(WBTC_B);
+        vm.expectEmit(true, true, true, false);
         emit Wipe(WBTC_C);
         spell.schedule();
 

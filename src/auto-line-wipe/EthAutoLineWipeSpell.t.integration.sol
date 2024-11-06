@@ -88,7 +88,9 @@ contract EthAutoLineWipeSpellTest is DssTest {
 
         vm.expectEmit(true, true, true, false);
         emit Wipe(ETH_A);
+        vm.expectEmit(true, true, true, false);
         emit Wipe(ETH_B);
+        vm.expectEmit(true, true, true, false);
         emit Wipe(ETH_C);
         spell.schedule();
 

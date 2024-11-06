@@ -43,15 +43,13 @@ contract WbtcAutoLineWipeSpell is DssEmergencySpell {
     LineMomLike public immutable lineMom = LineMomLike(_log.getAddress("LINE_MOM"));
     AutoLineLike public immutable autoLine = AutoLineLike(LineMomLike(_log.getAddress("LINE_MOM")).autoLine());
     VatLike public immutable vat = VatLike(_log.getAddress("MCD_VAT"));
-    bytes32 internal immutable WBTC_A = "WBTC-A";
-    bytes32 internal immutable WBTC_B = "WBTC-B";
-    bytes32 internal immutable WBTC_C = "WBTC-C";
+    bytes32 internal constant WBTC_A = "WBTC-A";
+    bytes32 internal constant WBTC_B = "WBTC-B";
+    bytes32 internal constant WBTC_C = "WBTC-C";
+    string public constant description =
+        string(abi.encodePacked("Emergency Spell | Auto-Line Wipe: ", WBTC_A, ", ", WBTC_B, ", ", WBTC_C));
 
     event Wipe(bytes32 indexed ilk);
-
-    function description() external view returns (string memory) {
-        return string(abi.encodePacked("Emergency Spell | Auto-Line Wipe: ", WBTC_A, ", ", WBTC_B, ", ", WBTC_C));
-    }
 
     function _emergencyActions() internal override {
         lineMom.wipe(WBTC_A);
@@ -77,7 +75,7 @@ contract WbtcAutoLineWipeSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice Returns whether the spell is done or not.
+     * @notice Returns whether the spell is done or not for the specified ilk.
      */
     function _done(bytes32 _ilk) internal view returns (bool) {
         if (vat.wards(address(lineMom)) == 0 || autoLine.wards(address(lineMom)) == 0 || lineMom.ilks(_ilk) == 0) {

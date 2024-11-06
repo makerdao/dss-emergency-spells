@@ -43,15 +43,13 @@ contract EthAutoLineWipeSpell is DssEmergencySpell {
     LineMomLike public immutable lineMom = LineMomLike(_log.getAddress("LINE_MOM"));
     AutoLineLike public immutable autoLine = AutoLineLike(LineMomLike(_log.getAddress("LINE_MOM")).autoLine());
     VatLike public immutable vat = VatLike(_log.getAddress("MCD_VAT"));
-    bytes32 internal immutable ETH_A = "ETH-A";
-    bytes32 internal immutable ETH_B = "ETH-B";
-    bytes32 internal immutable ETH_C = "ETH-C";
+    bytes32 internal constant ETH_A = "ETH-A";
+    bytes32 internal constant ETH_B = "ETH-B";
+    bytes32 internal constant ETH_C = "ETH-C";
+    string public constant description =
+        string(abi.encodePacked("Emergency Spell | Auto-Line Wipe: ", ETH_A, ", ", ETH_B, ", ", ETH_C));
 
     event Wipe(bytes32 indexed ilk);
-
-    function description() external view returns (string memory) {
-        return string(abi.encodePacked("Emergency Spell | Auto-Line Wipe: ", ETH_A, ", ", ETH_B, ", ", ETH_C));
-    }
 
     function _emergencyActions() internal override {
         lineMom.wipe(ETH_A);
@@ -77,7 +75,7 @@ contract EthAutoLineWipeSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice Returns whether the spell is done or not.
+     * @notice Returns whether the spell is done or not for the specified ilk.
      */
     function _done(bytes32 _ilk) internal view returns (bool) {
         if (vat.wards(address(lineMom)) == 0 || autoLine.wards(address(lineMom)) == 0 || lineMom.ilks(_ilk) == 0) {

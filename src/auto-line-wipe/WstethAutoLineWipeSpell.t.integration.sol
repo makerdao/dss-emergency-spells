@@ -82,6 +82,7 @@ contract WstethAutoLineWipeSpellTest is DssTest {
 
         vm.expectEmit(true, true, true, false);
         emit Wipe(WSTETH_A);
+        vm.expectEmit(true, true, true, false);
         emit Wipe(WSTETH_B);
         spell.schedule();
 

@@ -122,6 +122,13 @@ contract WbtcAutoLineWipeSpellTest is DssTest {
     }
 
     function testDoneWhenIlkIsNotAddedToLineMom() public {
+        // WBTC debt ceiling was set to zero when this tests was written, so we need to overwrite the state.
+        vm.startPrank(pauseProxy);
+        autoLine.setIlk(WBTC_A, 1, 1, 1);
+        autoLine.setIlk(WBTC_B, 1, 1, 1);
+        autoLine.setIlk(WBTC_C, 1, 1, 1);
+        vm.stopPrank();
+
         uint256 before = vm.snapshotState();
 
         vm.prank(pauseProxy);

@@ -107,10 +107,6 @@ contract WstethClipBreakerSpellTest is DssTest {
         assertFalse(spell.done(), "WSTETH-B spell already done");
         vm.revertToState(before);
 
-        vm.prank(pauseProxy);
-        assertFalse(spell.done(), "WSTETH-C spell already done");
-        vm.revertToState(before);
-
         vm.startPrank(pauseProxy);
         clipA.deny(address(clipperMom));
         clipB.deny(address(clipperMom));

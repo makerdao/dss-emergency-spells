@@ -72,7 +72,7 @@ contract WbtcAutoLineWipeSpellTest is DssTest {
         uint256 pmaxLine;
         uint256 pgap;
 
-        // WBTC debt ceiling was set to zero when this tests was written, so we need to overwrite the state.
+        // WBTC debt ceiling was set to zero when this test was written, so we need to overwrite the state.
         vm.startPrank(pauseProxy);
         autoLine.setIlk(WBTC_A, 1, 1, 1);
         autoLine.setIlk(WBTC_B, 1, 1, 1);
@@ -150,7 +150,7 @@ contract WbtcAutoLineWipeSpellTest is DssTest {
         lineMom.delIlk(WBTC_A);
         lineMom.delIlk(WBTC_B);
         lineMom.delIlk(WBTC_C);
-        assertTrue(spell.done(), "spell not done done");
+        assertTrue(spell.done(), "spell not done");
     }
 
     function testDoneWhenAutoLineIsNotActiveButLineIsNonZero() public {

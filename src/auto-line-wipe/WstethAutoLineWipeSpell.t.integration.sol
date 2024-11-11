@@ -116,7 +116,7 @@ contract WstethAutoLineWipeSpellTest is DssTest {
         vm.startPrank(pauseProxy);
         lineMom.delIlk(WSTETH_A);
         lineMom.delIlk(WSTETH_B);
-        assertTrue(spell.done(), "spell not done done");
+        assertTrue(spell.done(), "spell not done");
     }
 
     function testDoneWhenAutoLineIsNotActiveButLineIsNonZero() public {

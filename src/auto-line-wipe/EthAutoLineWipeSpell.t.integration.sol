@@ -135,7 +135,7 @@ contract EthAutoLineWipeSpellTest is DssTest {
         lineMom.delIlk(ETH_A);
         lineMom.delIlk(ETH_B);
         lineMom.delIlk(ETH_C);
-        assertTrue(spell.done(), "spell not done done");
+        assertTrue(spell.done(), "spell not done");
     }
 
     function testDoneWhenAutoLineIsNotActiveButLineIsNonZero() public {

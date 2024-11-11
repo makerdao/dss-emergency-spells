@@ -59,8 +59,8 @@ contract WstethAutoLineWipeSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice Returns whwstether the spell is done or not.
-     * @dev Checks if the all ilks have been wiped from auto-line and vat line is zero for all ilks.
+     * @notice Returns whether the spell is done or not.
+     * @dev Checks if all the ilks have been wiped from auto-line and vat line is zero for all ilks.
      *      The spell would revert if any of the following conditions holds:
      *          1. LineMom is not ward on Vat
      *          2. LineMom is not ward on AutoLine

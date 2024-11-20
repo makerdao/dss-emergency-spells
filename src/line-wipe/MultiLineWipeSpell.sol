@@ -45,7 +45,7 @@ interface VatLike {
     function wards(address who) external view returns (uint256);
 }
 
-contract MultiAutoLineWipeSpell is DssEmergencySpell {
+contract MultiLineWipeSpell is DssEmergencySpell {
     string public constant override description = "Emergency Spell | Multi AutoLine Wipe";
 
     IlkRegistryLike public immutable ilkReg = IlkRegistryLike(_log.getAddress("ILK_REGISTRY"));

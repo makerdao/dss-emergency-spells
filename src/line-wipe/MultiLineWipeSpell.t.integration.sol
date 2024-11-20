@@ -17,7 +17,7 @@ pragma solidity ^0.8.16;
 
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
-import {MultiAutoLineWipeSpell} from "./MultiAutoLineWipeSpell.sol";
+import {MultiLineWipeSpell} from "./MultiLineWipeSpell.sol";
 
 interface LineMomLike {
     function ilks(bytes32 ilk) external view returns (uint256);
@@ -41,7 +41,7 @@ interface VatLike {
     function file(bytes32 ilk, bytes32 what, uint256 data) external;
 }
 
-contract MultiAutoLineWipeSpellTest is DssTest {
+contract MultiLineWipeSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
@@ -51,7 +51,7 @@ contract MultiAutoLineWipeSpellTest is DssTest {
     IlkRegistryLike ilkReg;
     LineMomLike lineMom;
     AutoLineLike autoLine;
-    MultiAutoLineWipeSpell spell;
+    MultiLineWipeSpell spell;
 
     mapping(bytes32 => bool) ilksToIgnore;
 
@@ -65,7 +65,7 @@ contract MultiAutoLineWipeSpellTest is DssTest {
         ilkReg = IlkRegistryLike(dss.chainlog.getAddress("ILK_REGISTRY"));
         lineMom = LineMomLike(dss.chainlog.getAddress("LINE_MOM"));
         autoLine = AutoLineLike(lineMom.autoLine());
-        spell = new MultiAutoLineWipeSpell();
+        spell = new MultiLineWipeSpell();
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
 
@@ -97,12 +97,12 @@ contract MultiAutoLineWipeSpellTest is DssTest {
     }
 
     function testMultiOracleStopOnSchedule() public {
-        _checkAutoLineWipedStatus({ilks: ilkReg.list(), expected: false});
+        _checkLineWipedStatus({ilks: ilkReg.list(), expected: false});
         assertFalse(spell.done(), "before: spell already done");
 
         spell.schedule();
 
-        _checkAutoLineWipedStatus({ilks: ilkReg.list(), expected: true});
+        _checkLineWipedStatus({ilks: ilkReg.list(), expected: true});
         assertTrue(spell.done(), "after: spell not done");
     }
 
@@ -114,18 +114,18 @@ contract MultiAutoLineWipeSpellTest is DssTest {
         // End is inclusive, so we need to subtract 1
         uint256 end = start + batchSize - 1;
 
-        _checkAutoLineWipedStatus({ilks: ilkReg.list(), expected: false});
+        _checkLineWipedStatus({ilks: ilkReg.list(), expected: false});
 
         while (start < count) {
             spell.stopBatch(start, end);
-            _checkAutoLineWipedStatus({ilks: ilkReg.list(start, end < maxEnd ? end : maxEnd), expected: true});
+            _checkLineWipedStatus({ilks: ilkReg.list(start, end < maxEnd ? end : maxEnd), expected: true});
 
             start += batchSize;
             end += batchSize;
         }
 
         // Sanity check: the test iterated over the entire ilk registry.
-        _checkAutoLineWipedStatus({ilks: ilkReg.list(), expected: true});
+        _checkLineWipedStatus({ilks: ilkReg.list(), expected: true});
     }
 
     function testDoneWhenAutoLineIsNotActiveButLineIsNonZero() public {
@@ -142,13 +142,13 @@ contract MultiAutoLineWipeSpellTest is DssTest {
     function testRevertMultiOracleStopWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
-        _checkAutoLineWipedStatus({ilks: ilkReg.list(), expected: false});
+        _checkLineWipedStatus({ilks: ilkReg.list(), expected: false});
 
         vm.expectRevert();
         spell.schedule();
     }
 
-    function _checkAutoLineWipedStatus(bytes32[] memory ilks, bool expected) internal view {
+    function _checkLineWipedStatus(bytes32[] memory ilks, bool expected) internal view {
         assertTrue(ilks.length > 0, "empty ilks list");
 
         for (uint256 i = 0; i < ilks.length; i++) {

@@ -18,7 +18,7 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {SingleAutoLineWipeFactory} from "./SingleAutoLineWipeSpell.sol";
+import {SingleLineWipeFactory} from "./SingleLineWipeSpell.sol";
 
 interface AutoLineLike {
     function ilks(bytes32 ilk)
@@ -35,7 +35,7 @@ interface VatLike {
     function file(bytes32 ilk, bytes32 what, uint256 data) external;
 }
 
-contract SingleAutoLineWipeSpellTest is DssTest {
+contract SingleLineWipeSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
@@ -45,7 +45,7 @@ contract SingleAutoLineWipeSpellTest is DssTest {
     bytes32 ilk = "ETH-A";
     LineMomLike lineMom;
     AutoLineLike autoLine;
-    SingleAutoLineWipeFactory factory;
+    SingleLineWipeFactory factory;
     DssEmergencySpellLike spell;
 
     function setUp() public {
@@ -57,7 +57,7 @@ contract SingleAutoLineWipeSpellTest is DssTest {
         vat = VatLike(dss.chainlog.getAddress("MCD_VAT"));
         lineMom = LineMomLike(dss.chainlog.getAddress("LINE_MOM"));
         autoLine = AutoLineLike(dss.chainlog.getAddress("MCD_IAM_AUTO_LINE"));
-        factory = new SingleAutoLineWipeFactory();
+        factory = new SingleLineWipeFactory();
         spell = DssEmergencySpellLike(factory.deploy(ilk));
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
@@ -65,7 +65,7 @@ contract SingleAutoLineWipeSpellTest is DssTest {
         vm.makePersistent(chief);
     }
 
-    function testAutoLineWipeOnSchedule() public {
+    function testLineWipeOnSchedule() public {
         (uint256 pmaxLine, uint256 pgap,,,) = autoLine.ilks(ilk);
         assertGt(pmaxLine, 0, "before: auto-line already wiped");
         assertGt(pgap, 0, "before: auto-line already wiped");
@@ -100,7 +100,7 @@ contract SingleAutoLineWipeSpellTest is DssTest {
         assertFalse(spell.done(), "after: spell still done");
     }
 
-    function testRevertAutoLineWipeWhenItDoesNotHaveTheHat() public {
+    function testRevertLineWipeWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
         (uint256 pmaxLine, uint256 pgap,,,) = autoLine.ilks(ilk);

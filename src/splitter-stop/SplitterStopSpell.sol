@@ -27,9 +27,9 @@ interface SplitterLike {
 }
 
 /// @title Splitter Stop Emergency Spell
-/// @notice Will disable the Splitter (Smart Burn Engine, former Flap auctions)
-/// @custom:authors [Oddaf]
-/// @custom:reviewers []
+/// @notice Disables the Splitter (Smart Burn Engine, former Flap auctions)
+/// @custom:authors [oddaf]
+/// @custom:reviewers [amusingaxl]
 /// @custom:auditors []
 /// @custom:bounties []
 contract SplitterStopSpell is DssEmergencySpell {

@@ -36,9 +36,9 @@ interface LitePsmLike {
 }
 
 /// @title Lite PSM Halt Emergency Spell
-/// @notice Will halt trading on MCD_LITE_PSM_USDC_A, can halt only gem buys, sells, or both.
-/// @custom:authors [Oddaf]
-/// @custom:reviewers []
+/// @notice Halts trading on LitePSM. It can halt only gem buys, sells, or both, depending on the constructor params.
+/// @custom:authors [oddaf]
+/// @custom:reviewers [amusingaxl]
 /// @custom:auditors []
 /// @custom:bounties []
 contract SingleLitePsmHaltSpell is DssEmergencySpell {

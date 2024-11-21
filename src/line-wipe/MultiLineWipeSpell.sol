@@ -74,15 +74,15 @@ contract MultiLineWipeSpell is DssEmergencySpell {
     constructor(bytes32[] memory _ilks) {
         // This is a workaround to Solidity's lack of ability to support immutable arrays, as described in
         // https://github.com/ethereum/solidity/issues/12587
-        uint256 listSize = _ilks.length;
-        require(listSize >= MIN_LIST_SIZE, "MultiLineWipeSpell/too-few-ilks");
-        require(listSize <= MAX_LIST_SIZE, "MultiLineWipeSpell/too-many-ilks");
-        _totalIlks = listSize;
+        uint256 len = _ilks.length;
+        require(len >= MIN_LIST_SIZE, "MultiLineWipeSpell/too-few-ilks");
+        require(len <= MAX_LIST_SIZE, "MultiLineWipeSpell/too-many-ilks");
+        _totalIlks = len;
 
         _ilk0 = _ilks[0];
         _ilk1 = _ilks[1];
         // Only ilk2 is not guaranteed to exist.
-        _ilk2 = listSize > 2 ? _ilks[2] : bytes32(0);
+        _ilk2 = len > 2 ? _ilks[2] : bytes32(0);
     }
 
     /// @notice Returns the list of ilks to which the spell is applicable.

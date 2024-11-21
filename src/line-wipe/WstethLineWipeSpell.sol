@@ -39,39 +39,36 @@ interface VatLike {
     function wards(address who) external view returns (uint256);
 }
 
-contract WbtcAutoLineWipeSpell is DssEmergencySpell {
+contract WstethLineWipeSpell is DssEmergencySpell {
     LineMomLike public immutable lineMom = LineMomLike(_log.getAddress("LINE_MOM"));
     AutoLineLike public immutable autoLine = AutoLineLike(LineMomLike(_log.getAddress("LINE_MOM")).autoLine());
     VatLike public immutable vat = VatLike(_log.getAddress("MCD_VAT"));
-    bytes32 internal constant WBTC_A = "WBTC-A";
-    bytes32 internal constant WBTC_B = "WBTC-B";
-    bytes32 internal constant WBTC_C = "WBTC-C";
+    bytes32 internal constant WSTETH_A = "WSTETH-A";
+    bytes32 internal constant WSTETH_B = "WSTETH-B";
     string public constant description =
-        string(abi.encodePacked("Emergency Spell | Auto-Line Wipe: ", WBTC_A, ", ", WBTC_B, ", ", WBTC_C));
+        string(abi.encodePacked("Emergency Spell | Line Wipe: ", WSTETH_A, ", ", WSTETH_B));
 
     event Wipe(bytes32 indexed ilk);
 
     function _emergencyActions() internal override {
-        lineMom.wipe(WBTC_A);
-        lineMom.wipe(WBTC_B);
-        lineMom.wipe(WBTC_C);
+        lineMom.wipe(WSTETH_A);
+        lineMom.wipe(WSTETH_B);
 
-        emit Wipe(WBTC_A);
-        emit Wipe(WBTC_B);
-        emit Wipe(WBTC_C);
+        emit Wipe(WSTETH_A);
+        emit Wipe(WSTETH_B);
     }
 
     /**
      * @notice Returns whether the spell is done or not.
-     * @dev Checks if all the ilks have been wiped from auto-line and vat line is zero for all ilks.
+     * @dev Checks if the ilks have been wiped from auto-line and/or vat line is zero.
      *      The spell would revert if any of the following conditions holds:
      *          1. LineMom is not ward on Vat
      *          2. LineMom is not ward on AutoLine
-     *          3. The ilk has not been added to AutoLine
+     *          3. The ilk has not been added to LineMom
      *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
-        return _done(WBTC_A) && _done(WBTC_B) && _done(WBTC_C);
+        return _done(WSTETH_A) && _done(WSTETH_B);
     }
 
     /**

@@ -39,7 +39,7 @@ interface VatLike {
     function wards(address who) external view returns (uint256);
 }
 
-contract EthAutoLineWipeSpell is DssEmergencySpell {
+contract EthLineWipeSpell is DssEmergencySpell {
     LineMomLike public immutable lineMom = LineMomLike(_log.getAddress("LINE_MOM"));
     AutoLineLike public immutable autoLine = AutoLineLike(LineMomLike(_log.getAddress("LINE_MOM")).autoLine());
     VatLike public immutable vat = VatLike(_log.getAddress("MCD_VAT"));
@@ -47,7 +47,7 @@ contract EthAutoLineWipeSpell is DssEmergencySpell {
     bytes32 internal constant ETH_B = "ETH-B";
     bytes32 internal constant ETH_C = "ETH-C";
     string public constant description =
-        string(abi.encodePacked("Emergency Spell | Auto-Line Wipe: ", ETH_A, ", ", ETH_B, ", ", ETH_C));
+        string(abi.encodePacked("Emergency Spell | Line Wipe: ", ETH_A, ", ", ETH_B, ", ", ETH_C));
 
     event Wipe(bytes32 indexed ilk);
 
@@ -63,11 +63,11 @@ contract EthAutoLineWipeSpell is DssEmergencySpell {
 
     /**
      * @notice Returns whether the spell is done or not.
-     * @dev Checks if all the ilks have been wiped from auto-line and vat line is zero for all ilks.
+     * @dev Checks if the ilks have been wiped from auto-line and/or vat line is zero.
      *      The spell would revert if any of the following conditions holds:
      *          1. LineMom is not ward on Vat
      *          2. LineMom is not ward on AutoLine
-     *          3. The ilk has not been added to AutoLine
+     *          3. The ilk has not been added to LineMom
      *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {

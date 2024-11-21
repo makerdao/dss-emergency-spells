@@ -18,7 +18,7 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {EthAutoLineWipeSpell} from "./EthAutoLineWipeSpell.sol";
+import {WstethLineWipeSpell} from "./WstethLineWipeSpell.sol";
 
 interface AutoLineLike {
     function ilks(bytes32 ilk)
@@ -35,7 +35,7 @@ interface VatLike {
     function file(bytes32 ilk, bytes32 what, uint256 data) external;
 }
 
-contract EthAutoLineWipeSpellTest is DssTest {
+contract WstethLineWipeSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
@@ -43,9 +43,8 @@ contract EthAutoLineWipeSpellTest is DssTest {
     address pauseProxy;
     VatLike vat;
     address chief;
-    bytes32 ETH_A = "ETH-A";
-    bytes32 ETH_B = "ETH-B";
-    bytes32 ETH_C = "ETH-C";
+    bytes32 WSTETH_A = "WSTETH-A";
+    bytes32 WSTETH_B = "WSTETH-B";
     LineMomLike lineMom;
     AutoLineLike autoLine;
     DssEmergencySpellLike spell;
@@ -60,7 +59,7 @@ contract EthAutoLineWipeSpellTest is DssTest {
         chief = dss.chainlog.getAddress("MCD_ADM");
         lineMom = LineMomLike(dss.chainlog.getAddress("LINE_MOM"));
         autoLine = AutoLineLike(dss.chainlog.getAddress("MCD_IAM_AUTO_LINE"));
-        spell = new EthAutoLineWipeSpell();
+        spell = new WstethLineWipeSpell();
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
 
@@ -71,70 +70,52 @@ contract EthAutoLineWipeSpellTest is DssTest {
         uint256 pmaxLine;
         uint256 pgap;
 
-        (pmaxLine, pgap,,,) = autoLine.ilks(ETH_A);
-        assertGt(pmaxLine, 0, "ETH-A before: auto-line already wiped");
-        assertGt(pgap, 0, "ETH-A before: auto-line already wiped");
-        assertFalse(spell.done(), "ETH-A before: spell already done");
+        (pmaxLine, pgap,,,) = autoLine.ilks(WSTETH_A);
+        assertGt(pmaxLine, 0, "WSTETH-A before: auto-line maxLine already wiped");
+        assertGt(pgap, 0, "WSTETH-A before: auto-line gap already wiped");
+        assertFalse(spell.done(), "WSTETH-A before: spell already done");
 
-        (pmaxLine, pgap,,,) = autoLine.ilks(ETH_B);
-        assertGt(pmaxLine, 0, "ETH-B before: auto-line already wiped");
-        assertGt(pgap, 0, "ETH-B before: auto-line already wiped");
-        assertFalse(spell.done(), "ETH-B before: spell already done");
-
-        (pmaxLine, pgap,,,) = autoLine.ilks(ETH_C);
-        assertGt(pmaxLine, 0, "ETH-C before: auto-line already wiped");
-        assertGt(pgap, 0, "ETH-C before: auto-line already wiped");
-        assertFalse(spell.done(), "ETH-C before: spell already done");
+        (pmaxLine, pgap,,,) = autoLine.ilks(WSTETH_B);
+        assertGt(pmaxLine, 0, "WSTETH-B before: auto-line maxLine already wiped");
+        assertGt(pgap, 0, "WSTETH-B before: auto-line gap already wiped");
+        assertFalse(spell.done(), "WSTETH-B before: spell already done");
 
         vm.expectEmit(true, true, true, false);
-        emit Wipe(ETH_A);
+        emit Wipe(WSTETH_A);
         vm.expectEmit(true, true, true, false);
-        emit Wipe(ETH_B);
-        vm.expectEmit(true, true, true, false);
-        emit Wipe(ETH_C);
+        emit Wipe(WSTETH_B);
         spell.schedule();
 
         uint256 maxLine;
         uint256 gap;
 
-        (maxLine, gap,,,) = autoLine.ilks(ETH_A);
-        assertEq(maxLine, 0, "ETH-A after: auto-line not wiped (maxLine)");
-        assertEq(gap, 0, "ETH-A after: auto-line not wiped (gap)");
-        assertTrue(spell.done(), "ETH-A after: spell not done");
+        (maxLine, gap,,,) = autoLine.ilks(WSTETH_A);
+        assertEq(maxLine, 0, "WSTETH-A after: auto-line maxLine not wiped");
+        assertEq(gap, 0, "WSTETH-A after: auto-line gap not wiped");
+        assertTrue(spell.done(), "WSTETH-A after: spell not done");
 
-        (maxLine, gap,,,) = autoLine.ilks(ETH_B);
-        assertEq(maxLine, 0, "ETH-B after: auto-line not wiped (maxLine)");
-        assertEq(gap, 0, "ETH-B after: auto-line not wiped (gap)");
-        assertTrue(spell.done(), "ETH-B after: spell not done");
-
-        (maxLine, gap,,,) = autoLine.ilks(ETH_C);
-        assertEq(maxLine, 0, "ETH-C after: auto-line not wiped (maxLine)");
-        assertEq(gap, 0, "ETH-C after: auto-line not wiped (gap)");
-        assertTrue(spell.done(), "ETH-C after: spell not done");
+        (maxLine, gap,,,) = autoLine.ilks(WSTETH_B);
+        assertEq(maxLine, 0, "WSTETH-B after: auto-line maxLine not wiped");
+        assertEq(gap, 0, "WSTETH-B after: auto-line gap not wiped");
+        assertTrue(spell.done(), "WSTETH-B after: spell not done");
     }
 
     function testDoneWhenIlkIsNotAddedToLineMom() public {
         uint256 before = vm.snapshotState();
 
         vm.prank(pauseProxy);
-        lineMom.delIlk(ETH_A);
-        assertFalse(spell.done(), "ETH-A spell done");
+        lineMom.delIlk(WSTETH_A);
+        assertFalse(spell.done(), "WSTETH-A spell done");
         vm.revertToState(before);
 
         vm.prank(pauseProxy);
-        lineMom.delIlk(ETH_B);
-        assertFalse(spell.done(), "ETH-B spell done");
-        vm.revertToState(before);
-
-        vm.prank(pauseProxy);
-        lineMom.delIlk(ETH_C);
-        assertFalse(spell.done(), "ETH-C spell done");
+        lineMom.delIlk(WSTETH_B);
+        assertFalse(spell.done(), "WSTETH-B spell done");
         vm.revertToState(before);
 
         vm.startPrank(pauseProxy);
-        lineMom.delIlk(ETH_A);
-        lineMom.delIlk(ETH_B);
-        lineMom.delIlk(ETH_C);
+        lineMom.delIlk(WSTETH_A);
+        lineMom.delIlk(WSTETH_B);
         assertTrue(spell.done(), "spell not done");
     }
 
@@ -145,18 +126,13 @@ contract EthAutoLineWipeSpellTest is DssTest {
         assertTrue(spell.done(), "before: spell not done");
 
         vm.prank(pauseProxy);
-        vat.file(ETH_A, "line", 10 ** 45);
-        assertFalse(spell.done(), "ETH-A after: spell still done");
+        vat.file(WSTETH_A, "line", 10 ** 45);
+        assertFalse(spell.done(), "WSTETH-A after: spell still done");
         vm.revertToState(before);
 
         vm.prank(pauseProxy);
-        vat.file(ETH_B, "line", 10 ** 45);
-        assertFalse(spell.done(), "ETH-B after: spell still done");
-        vm.revertToState(before);
-
-        vm.prank(pauseProxy);
-        vat.file(ETH_C, "line", 10 ** 45);
-        assertFalse(spell.done(), "ETH-C after: spell still done");
+        vat.file(WSTETH_B, "line", 10 ** 45);
+        assertFalse(spell.done(), "WSTETH-B after: spell still done");
         vm.revertToState(before);
     }
 

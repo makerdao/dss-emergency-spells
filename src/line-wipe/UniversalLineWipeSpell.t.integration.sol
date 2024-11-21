@@ -17,7 +17,7 @@ pragma solidity ^0.8.16;
 
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
-import {MultiLineWipeSpell} from "./MultiLineWipeSpell.sol";
+import {UniversalLineWipeSpell} from "./UniversalLineWipeSpell.sol";
 
 interface LineMomLike {
     function ilks(bytes32 ilk) external view returns (uint256);
@@ -41,7 +41,7 @@ interface VatLike {
     function file(bytes32 ilk, bytes32 what, uint256 data) external;
 }
 
-contract MultiLineWipeSpellTest is DssTest {
+contract UniversalLineWipeSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
@@ -51,7 +51,7 @@ contract MultiLineWipeSpellTest is DssTest {
     IlkRegistryLike ilkReg;
     LineMomLike lineMom;
     AutoLineLike autoLine;
-    MultiLineWipeSpell spell;
+    UniversalLineWipeSpell spell;
 
     mapping(bytes32 => bool) ilksToIgnore;
 
@@ -65,7 +65,7 @@ contract MultiLineWipeSpellTest is DssTest {
         ilkReg = IlkRegistryLike(dss.chainlog.getAddress("ILK_REGISTRY"));
         lineMom = LineMomLike(dss.chainlog.getAddress("LINE_MOM"));
         autoLine = AutoLineLike(lineMom.autoLine());
-        spell = new MultiLineWipeSpell();
+        spell = new UniversalLineWipeSpell();
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
 
@@ -96,7 +96,7 @@ contract MultiLineWipeSpellTest is DssTest {
         }
     }
 
-    function testMultiOracleStopOnSchedule() public {
+    function testUniversalOracleStopOnSchedule() public {
         _checkLineWipedStatus({ilks: ilkReg.list(), expected: false});
         assertFalse(spell.done(), "before: spell already done");
 
@@ -106,7 +106,7 @@ contract MultiLineWipeSpellTest is DssTest {
         assertTrue(spell.done(), "after: spell not done");
     }
 
-    function testMultiOracleStopInBatches_Fuzz(uint256 batchSize) public {
+    function testUniversalOracleStopInBatches_Fuzz(uint256 batchSize) public {
         batchSize = bound(batchSize, 1, type(uint128).max);
         uint256 count = ilkReg.count();
         uint256 maxEnd = count - 1;
@@ -139,7 +139,7 @@ contract MultiLineWipeSpellTest is DssTest {
         assertFalse(spell.done(), "after: spell still done");
     }
 
-    function testRevertMultiOracleStopWhenItDoesNotHaveTheHat() public {
+    function testRevertUniversalOracleStopWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
         _checkLineWipedStatus({ilks: ilkReg.list(), expected: false});

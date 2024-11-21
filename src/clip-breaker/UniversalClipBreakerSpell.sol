@@ -21,114 +21,116 @@ interface IlkRegistryLike {
     function count() external view returns (uint256);
     function list() external view returns (bytes32[] memory);
     function list(uint256 start, uint256 end) external view returns (bytes32[] memory);
+    function xlip(bytes32 ilk) external view returns (address);
 }
 
-interface OsmMomLike {
-    function stop(bytes32 ilk) external;
-    function osms(bytes32 ilk) external view returns (address);
+interface ClipperMomLike {
+    function setBreaker(address clip, uint256 level, uint256 delay) external;
 }
 
-interface OsmLike {
-    function stopped() external view returns (uint256);
+interface ClipLike {
     function wards(address who) external view returns (uint256);
+    function stopped() external view returns (uint256);
 }
 
-contract MultiOsmStopSpell is DssEmergencySpell {
-    string public constant override description = "Emergency Spell | Multi OSM Stop";
+contract UniversalClipBreakerSpell is DssEmergencySpell {
+    string public constant override description = "Emergency Spell | Universal Clip Breaker";
+    /// @dev During an emergency, set the breaker level to 3  to prevent both `kick()`, `redo()` and `take()`.
+    uint256 public constant BREAKER_LEVEL = 3;
+    /// @dev The delay is not applicable for level 3 breakers, so we set it to zero.
+    uint256 public constant BREAKER_DELAY = 0;
 
     IlkRegistryLike public immutable ilkReg = IlkRegistryLike(_log.getAddress("ILK_REGISTRY"));
-    OsmMomLike public immutable osmMom = OsmMomLike(_log.getAddress("OSM_MOM"));
+    ClipperMomLike public immutable clipperMom = ClipperMomLike(_log.getAddress("CLIPPER_MOM"));
 
-    event Stop(bytes32 indexed ilk, address indexed osm);
-    event Fail(bytes32 indexed ilk, address indexed osm, bytes reason);
+    event SetBreaker(bytes32 indexed ilk, address indexed clip);
+    event Fail(bytes32 indexed ilk, address indexed clip, bytes reason);
 
     /**
-     * @notice Stops, when possible, all OSMs that can be found through the ilk registry.
+     * @notice Sets breakers, when possible, for all Clip instances that can be found in the ilk registry.
      */
     function _emergencyActions() internal override {
         bytes32[] memory ilks = ilkReg.list();
-        _doStop(ilks);
+        _doSetBreaker(ilks);
     }
 
     /**
-     * @notice Stops all OSMs in the batch.
+     * @notice Sets breakers for all Clips in the batch.
      * @dev This is an escape hatch to prevent this spell from being blocked in case it would hit the block gas limit.
      *      In case `end` is greater than the ilk registry length, the iteration will be automatically capped.
      * @param start The index to start the iteration (inclusive).
      * @param end The index to stop the iteration (inclusive).
      */
-    function stopBatch(uint256 start, uint256 end) external {
+    function setBreakerInBatch(uint256 start, uint256 end) external {
         uint256 maxEnd = ilkReg.count() - 1;
         bytes32[] memory ilks = ilkReg.list(start, end < maxEnd ? end : maxEnd);
-        _doStop(ilks);
+        _doSetBreaker(ilks);
     }
 
     /**
-     * @notice Stops, when possible, all OSMs that can be found from the `ilks` list.
+     * @notice Sets breakers, when possible, for all Clip instances that can be found from the `ilks` list.
      * @param ilks The list of ilks to consider.
      */
-    function _doStop(bytes32[] memory ilks) internal {
+    function _doSetBreaker(bytes32[] memory ilks) internal {
         for (uint256 i = 0; i < ilks.length; i++) {
-            address osm = osmMom.osms(ilks[i]);
+            address clip = ilkReg.xlip(ilks[i]);
 
-            if (osm == address(0)) {
+            if (clip == address(0)) {
                 continue;
             }
 
-            try OsmLike(osm).wards(address(osmMom)) returns (uint256 ward) {
+            try ClipLike(clip).wards(address(clipperMom)) returns (uint256 ward) {
                 if (ward == 0) {
-                    emit Fail(ilks[i], osm, "osmMom-not-ward");
+                    emit Fail(ilks[i], clip, "clipperMom-not-ward");
                     continue;
                 }
             } catch (bytes memory reason) {
-                emit Fail(ilks[i], osm, reason);
+                emit Fail(ilks[i], clip, reason);
                 continue;
             }
 
-            // There might be some duplicate calls to the same OSM, however they are idempotent.
-            try OsmMomLike(osmMom).stop(ilks[i]) {
-                emit Stop(ilks[i], osm);
+            try clipperMom.setBreaker(clip, BREAKER_LEVEL, BREAKER_DELAY) {
+                emit SetBreaker(ilks[i], clip);
             } catch Error(string memory reason) {
                 // If the spell does not have the hat, it cannot be executed, so we must halt it.
-                require(!_strEq(reason, "osm-mom/not-authorized"), reason);
+                require(!_strEq(reason, "ClipperMom/not-authorized"), reason);
                 // Whatever other reason we just ignore and move on.
-                emit Fail(ilks[i], osm, bytes(reason));
+                emit Fail(ilks[i], clip, bytes(reason));
             } catch (bytes memory reason) {
-                emit Fail(ilks[i], osm, reason);
+                emit Fail(ilks[i], clip, reason);
             }
         }
     }
 
     /**
      * @notice Returns whether the spell is done or not.
-     * @dev Checks if all possible OSM instances from the ilk registry are stopped.
+     * @dev Checks if all possible Clip instances from the ilk registry have stopped = 3.
      */
     function done() external view returns (bool) {
         bytes32[] memory ilks = ilkReg.list();
         for (uint256 i = 0; i < ilks.length; i++) {
-            address osm = osmMom.osms(ilks[i]);
+            address clip = ilkReg.xlip(ilks[i]);
 
-            if (osm == address(0)) {
+            if (clip == address(0)) {
                 continue;
             }
 
-            try OsmLike(osm).wards(address(osmMom)) returns (uint256 ward) {
-                // Ignore Osm instances that have not relied on OsmMom.
+            try ClipLike(clip).wards(address(clipperMom)) returns (uint256 ward) {
+                // Ignore Clip instances that have not relied on ClipperMom.
                 if (ward == 0) {
                     continue;
                 }
             } catch {
-                // If the call failed, it means the contract is most likely not an OSM instance, so it can be ignored.
+                // If the call failed, it means the contract is most likely not a Clip instance, so it can be ignored.
                 continue;
             }
 
-            try OsmLike(osm).stopped() returns (uint256 stopped) {
-                // If any of the OSMs that match the conditions is not stopped, the spell was not executed yet.
-                if (stopped == 0) {
+            try ClipLike(clip).stopped() returns (uint256 stopped) {
+                if (stopped != BREAKER_LEVEL) {
                     return false;
                 }
             } catch {
-                // If the call failed, it means the contract is most likely not an OSM instance, so it can be ignored.
+                // If the call failed, it means the contract is most likely not a Clip instance, so it can be ignored.
                 continue;
             }
         }

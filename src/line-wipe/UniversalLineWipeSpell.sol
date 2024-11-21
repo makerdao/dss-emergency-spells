@@ -45,8 +45,8 @@ interface VatLike {
     function wards(address who) external view returns (uint256);
 }
 
-contract MultiLineWipeSpell is DssEmergencySpell {
-    string public constant override description = "Emergency Spell | Multi Line Wipe";
+contract UniversalLineWipeSpell is DssEmergencySpell {
+    string public constant override description = "Emergency Spell | Universal Line Wipe";
 
     IlkRegistryLike public immutable ilkReg = IlkRegistryLike(_log.getAddress("ILK_REGISTRY"));
     LineMomLike public immutable lineMom = LineMomLike(_log.getAddress("LINE_MOM"));

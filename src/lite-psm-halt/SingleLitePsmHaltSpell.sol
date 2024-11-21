@@ -35,10 +35,10 @@ interface LitePsmLike {
     function ilk() external view returns (bytes32);
 }
 
-/// @title Lite PSM Halt Emergency Spell
+/// @title Emergency Spell: Lite PSM Halt
 /// @notice Halts trading on LitePSM. It can halt only gem buys, sells, or both, depending on the constructor params.
 /// @custom:authors [oddaf]
-/// @custom:reviewers [amusingaxl]
+/// @custom:reviewers [amusingaxl, 0xdecripto]
 /// @custom:auditors []
 /// @custom:bounties []
 contract SingleLitePsmHaltSpell is DssEmergencySpell {

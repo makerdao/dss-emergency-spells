@@ -55,7 +55,7 @@ contract SingleDdmDisableSpell is DssEmergencySpell {
      * @notice Returns whether the spell is done or not.
      * @dev Checks if the plan.active() = false.
      *      The spell would revert if any of the following conditions holds:
-     *          1. DDMMom is not a ward of DDMHub, the spell would revert.
+     *          1. DDMMom is not a ward of DDMHub.
      *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {

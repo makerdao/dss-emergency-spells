@@ -39,7 +39,7 @@ interface VatLike {
     function wards(address who) external view returns (uint256);
 }
 
-contract SingleAutoLineWipeSpell is DssEmergencySpell {
+contract SingleLineWipeSpell is DssEmergencySpell {
     LineMomLike public immutable lineMom = LineMomLike(_log.getAddress("LINE_MOM"));
     AutoLineLike public immutable autoLine = AutoLineLike(LineMomLike(_log.getAddress("LINE_MOM")).autoLine());
     VatLike public immutable vat = VatLike(_log.getAddress("MCD_VAT"));
@@ -52,7 +52,7 @@ contract SingleAutoLineWipeSpell is DssEmergencySpell {
     }
 
     function description() external view returns (string memory) {
-        return string(abi.encodePacked("Emergency Spell | Auto-Line Wipe: ", ilk));
+        return string(abi.encodePacked("Emergency Spell | Line Wipe: ", ilk));
     }
 
     function _emergencyActions() internal override {
@@ -62,11 +62,11 @@ contract SingleAutoLineWipeSpell is DssEmergencySpell {
 
     /**
      * @notice Returns whether the spell is done or not.
-     * @dev Checks if the ilk has been wiped from auto-line and vat line is zero.
+     * @dev Checks if the ilk has been wiped from auto-line and/or vat line is zero.
      *      The spell would revert if any of the following conditions holds:
      *          1. LineMom is not ward on Vat
      *          2. LineMom is not ward on AutoLine
-     *          3. The ilk has not been added to AutoLine
+     *          3. The ilk has not been added to LineMom
      *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
@@ -81,11 +81,11 @@ contract SingleAutoLineWipeSpell is DssEmergencySpell {
     }
 }
 
-contract SingleAutoLineWipeFactory {
+contract SingleLineWipeFactory {
     event Deploy(bytes32 indexed ilk, address spell);
 
     function deploy(bytes32 ilk) external returns (address spell) {
-        spell = address(new SingleAutoLineWipeSpell(ilk));
+        spell = address(new SingleLineWipeSpell(ilk));
         emit Deploy(ilk, spell);
     }
 }

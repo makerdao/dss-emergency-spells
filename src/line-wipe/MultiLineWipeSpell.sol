@@ -46,7 +46,7 @@ interface VatLike {
 }
 
 contract MultiLineWipeSpell is DssEmergencySpell {
-    string public constant override description = "Emergency Spell | Multi AutoLine Wipe";
+    string public constant override description = "Emergency Spell | Multi Line Wipe";
 
     IlkRegistryLike public immutable ilkReg = IlkRegistryLike(_log.getAddress("ILK_REGISTRY"));
     LineMomLike public immutable lineMom = LineMomLike(_log.getAddress("LINE_MOM"));
@@ -56,7 +56,7 @@ contract MultiLineWipeSpell is DssEmergencySpell {
     event Wipe(bytes32 indexed ilk);
 
     /**
-     * @notice Wipes, when possible, all ilks from auto-line;
+     * @notice Wipes line in the Vat and auto-line (if applicable) for all possible ilks.
      */
     function _emergencyActions() internal override {
         bytes32[] memory ilks = ilkReg.list();
@@ -64,7 +64,7 @@ contract MultiLineWipeSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice Wipe all ilks in the batch from auto-line.
+     * @notice Wipes line in the Vat and auto-line (if applicable) for all possible ilks in the batch.
      * @dev This is an escape hatch to prevent this spell from being blocked in case it would hit the block gas limit.
      *      In case `end` is greater than the ilk registry length, the iteration will be automatically capped.
      * @param start The index to start the iteration (inclusive).
@@ -77,7 +77,7 @@ contract MultiLineWipeSpell is DssEmergencySpell {
     }
 
     /**
-     * @notice Wipes, when possible, all ilks from the auto-line provided in the `ilks` list.
+     * @notice Wipes line in the Vat and auto-line (if applicable) for all items in the `ilks`.
      * @param ilks The list of ilks to consider.
      */
     function _doWipe(bytes32[] memory ilks) internal {
@@ -93,7 +93,7 @@ contract MultiLineWipeSpell is DssEmergencySpell {
 
     /**
      * @notice Returns whether the spell is done or not.
-     * @dev Checks if all possible ilks from the ilk registry are wiped from auto-line.
+     * @dev Checks if line in the Vat is zero and ilk is removed from auto-line (if applicable) for all ilks in the ilk registry.
      *      Notice that if no action can be taken (i.e.: missing permissions, invalid config),
      *      this function will return `true`.
      */
@@ -110,7 +110,7 @@ contract MultiLineWipeSpell is DssEmergencySpell {
 
             (,,, uint256 line,) = vat.ilks(ilks[i]);
             (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc) = autoLine.ilks(ilks[i]);
-            // If any of the entries in auto-line or vat line has non zero values, then the spell is applicable.
+            // If any of the entries in auto-line or vat line have non zero values, then the spell is applicable.
             if (!(line == 0 && maxLine == 0 && gap == 0 && ttl == 0 && last == 0 && lastInc == 0)) {
                 return false;
             }

@@ -42,17 +42,20 @@ TBD.
 
 | Description        | Single ilk         | Multi ilk          |
 | :----------        | :--------:         | :-------:          |
-| Wipe `AutoLine`    | :white_check_mark: | :white_check_mark: |
+| Wipe `line`        | :white_check_mark: | :white_check_mark: |
 | Set `Clip` breaker | :white_check_mark: | :white_check_mark: |
 | Disable `DDM`      | :white_check_mark: | :x:                |
 | Stop `OSM`         | :white_check_mark: | :white_check_mark: |
 | Halt `PSM`         | :white_check_mark: | :x:                |
 | Stop `Splitter`    | :x:                | :white_check_mark: |
 
-### Wipe `AutoLine`
+### Wipe `line`
 
-No further debt can be generated from an ilk which is wiped from `MCD_IAM_AUTO_LINE`. It also prevents the debt ceiling
-(`line`) for the affected ilk from being changed without Governance interference.
+No further debt can be generated from an ilk whose `line` is wiped.
+
+If `MCD_IAM_AUTO_LINE` is configured for the ilk, it will be removed.
+
+It also prevents the debt ceiling (`line`) for the affected ilk from being changed without Governance interference.
 
 ### Set `Clip` breaker
 

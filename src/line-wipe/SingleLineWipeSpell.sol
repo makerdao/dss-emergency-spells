@@ -52,7 +52,7 @@ contract SingleLineWipeSpell is DssEmergencySpell {
     }
 
     function description() external view returns (string memory) {
-        return string(abi.encodePacked("Emergency Spell | Auto-Line Wipe: ", ilk));
+        return string(abi.encodePacked("Emergency Spell | Line Wipe: ", ilk));
     }
 
     function _emergencyActions() internal override {
@@ -62,11 +62,11 @@ contract SingleLineWipeSpell is DssEmergencySpell {
 
     /**
      * @notice Returns whether the spell is done or not.
-     * @dev Checks if the ilk has been wiped from auto-line and vat line is zero.
+     * @dev Checks if the ilk has been wiped from auto-line and/or vat line is zero.
      *      The spell would revert if any of the following conditions holds:
      *          1. LineMom is not ward on Vat
      *          2. LineMom is not ward on AutoLine
-     *          3. The ilk has not been added to AutoLine
+     *          3. The ilk has not been added to LineMom
      *      In such cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {

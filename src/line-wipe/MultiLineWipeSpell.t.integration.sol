@@ -76,7 +76,7 @@ contract MultiLineWipeSpellTest is DssTest {
 
     /// @dev Ignore any of:
     ///      - ilk was not set in LineMom
-    ///      - ilk is already wiped from auto-line
+    ///      - ilk line is already zero and/or wiped from auto-line
     function _initIlksToIgnore() internal {
         bytes32[] memory ilks = ilkReg.list();
         for (uint256 i = 0; i < ilks.length; i++) {

@@ -70,7 +70,7 @@ contract MultiClipBreakerSpell is DssEmergencySpell {
     ///      The multi-ilk spell is meant to be used for ilks that are a variation of tha same collateral gem
     ///      (i.e.: ETH-A, ETH-B, ETH-C)
     ///      There has never been a case where MCD onboarded 4 or more ilks for the same collateral gem.
-    ///      For cases where there are only 1 ilk for the same collateral gem, use the single-ilk version.
+    ///      For cases where there is only one ilk for the same collateral gem, use the single-ilk version.
     constructor(bytes32[] memory _ilks) {
         // This is a workaround to Solidity's lack of ability to support immutable arrays, as described in
         // https://github.com/ethereum/solidity/issues/12587

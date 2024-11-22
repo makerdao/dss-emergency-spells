@@ -107,7 +107,7 @@ contract SingleLitePsmHaltSpell is DssEmergencySpell {
     }
 }
 
-contract SingleLitePsmHaltSpellFactory {
+contract SingleLitePsmHaltFactory {
     event Deploy(address psm, Flow indexed flow, address spell);
 
     function deploy(address psm, Flow flow) external returns (address spell) {

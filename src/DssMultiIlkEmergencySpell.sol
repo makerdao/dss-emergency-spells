@@ -15,7 +15,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity ^0.8.16;
 
-import {DssEmergencySpell} from "./DssEmergencySpell.sol";
+import {DssEmergencySpell, DssEmergencySpellLike} from "./DssEmergencySpell.sol";
+
+interface DssMultiIlkEmergencySpellLike is DssEmergencySpellLike {
+    function ilks() external view returns (bytes32[] memory);
+}
 
 /// @title Multi-ilk Emergency Spell
 /// @notice Defines the base implementation for multi-ilk emergency spells.
@@ -23,7 +27,7 @@ import {DssEmergencySpell} from "./DssEmergencySpell.sol";
 /// @custom:reviewers []
 /// @custom:auditors []
 /// @custom:bounties []
-abstract contract DssMultiIlkEmergencySpell is DssEmergencySpell {
+abstract contract DssMultiIlkEmergencySpell is DssEmergencySpell, DssMultiIlkEmergencySpellLike {
     /// @dev The total number of ilks in the spell.
     uint256 internal immutable _totalIlks;
     /// @dev The 0th ilk to which the spell should be applicable.

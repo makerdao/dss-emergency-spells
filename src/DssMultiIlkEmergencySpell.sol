@@ -48,7 +48,7 @@ abstract contract DssMultiIlkEmergencySpell is DssEmergencySpell, DssMultiIlkEme
     ///      There has never been a case where MCD onboarded 4 or more ilks for the same collateral gem.
     ///      For cases where there is only one ilk for the same collateral gem, use the single-ilk version.
     constructor(bytes32[] memory _ilks) {
-        // This is a workaround to Solidity's lack of ability to support immutable arrays, as described in
+        // This is a workaround to Solidity's lack of support for immutable arrays, as described in
         // https://github.com/ethereum/solidity/issues/12587
         uint256 len = _ilks.length;
         require(len >= MIN_LIST_SIZE, "DssMultiIlkEmergencySpell/too-few-ilks");

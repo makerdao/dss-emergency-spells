@@ -109,7 +109,7 @@ abstract contract DssMultiIlkEmergencySpell is DssEmergencySpell {
         }
     }
 
-    /// @notice Executes the emergency action for the specified ilk.
+    /// @notice Executes the emergency actions for the specified ilk.
     /// @param _ilk The ilk to set the related Clip breaker.
     function _emergencyActions(bytes32 _ilk) internal virtual;
 

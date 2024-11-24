@@ -26,10 +26,10 @@ interface SplitterLike {
     function hop() external view returns (uint256);
 }
 
-/// @title Emergency Spell: Splitter Stop
-/// @notice Disables the Splitter (Smart Burn Engine, former Flap auctions)
-/// @custom:authors [oddaf]
-/// @custom:reviewers [amusingaxl, 0xdecripto]
+/// @title Splitter Stop Emergency Spell
+/// @notice Will disable the Splitter (Smart Burn Engine, former Flap auctions)
+/// @custom:authors [Oddaf]
+/// @custom:reviewers []
 /// @custom:auditors []
 /// @custom:bounties []
 contract SplitterStopSpell is DssEmergencySpell {

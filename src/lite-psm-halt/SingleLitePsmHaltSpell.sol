@@ -35,10 +35,10 @@ interface LitePsmLike {
     function ilk() external view returns (bytes32);
 }
 
-/// @title Emergency Spell: Lite PSM Halt
-/// @notice Halts trading on LitePSM. It can halt only gem buys, sells, or both, depending on the constructor params.
-/// @custom:authors [oddaf]
-/// @custom:reviewers [amusingaxl, 0xdecripto]
+/// @title Lite PSM Halt Emergency Spell
+/// @notice Will halt trading on MCD_LITE_PSM_USDC_A, can halt only gem buys, sells, or both.
+/// @custom:authors [Oddaf]
+/// @custom:reviewers []
 /// @custom:auditors []
 /// @custom:bounties []
 contract SingleLitePsmHaltSpell is DssEmergencySpell {
@@ -107,7 +107,7 @@ contract SingleLitePsmHaltSpell is DssEmergencySpell {
     }
 }
 
-contract SingleLitePsmHaltFactory {
+contract SingleLitePsmHaltSpellFactory {
     event Deploy(address psm, Flow indexed flow, address spell);
 
     function deploy(address psm, Flow flow) external returns (address spell) {

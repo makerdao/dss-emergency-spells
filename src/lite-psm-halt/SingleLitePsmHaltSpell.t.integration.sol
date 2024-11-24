@@ -4,7 +4,7 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD, GodMode} from "dss-test/DssTest.sol";
 import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {SingleLitePsmHaltFactory, Flow} from "./SingleLitePsmHaltSpell.sol";
+import {SingleLitePsmHaltSpellFactory, Flow} from "./SingleLitePsmHaltSpell.sol";
 
 interface LitePsmLike {
     function deny(address) external;
@@ -33,7 +33,7 @@ contract SingleLitePsmHaltSpellTest is DssTest {
     address chief;
     address litePsmMom;
     LitePsmLike psm;
-    SingleLitePsmHaltFactory factory;
+    SingleLitePsmHaltSpellFactory factory;
 
     function setUp() public {
         vm.createSelectFork("mainnet");
@@ -43,7 +43,7 @@ contract SingleLitePsmHaltSpellTest is DssTest {
         chief = dss.chainlog.getAddress("MCD_ADM");
         litePsmMom = dss.chainlog.getAddress("LITE_PSM_MOM");
         psm = LitePsmLike(dss.chainlog.getAddress("MCD_LITE_PSM_USDC_A"));
-        factory = new SingleLitePsmHaltFactory();
+        factory = new SingleLitePsmHaltSpellFactory();
     }
 
     function testPsmHaltOnScheduleBuy() public {

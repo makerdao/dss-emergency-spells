@@ -17,7 +17,7 @@ pragma solidity ^0.8.16;
 
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
-import {UniversalOsmStopSpell} from "./UniversalOsmStopSpell.sol";
+import {MultiOsmStopSpell} from "./MultiOsmStopSpell.sol";
 
 interface OsmMomLike {
     function osms(bytes32) external view returns (address);
@@ -36,7 +36,7 @@ interface IlkRegistryLike {
     function pip(bytes32 ilk) external view returns (address);
 }
 
-contract UniversalOsmStopSpellTest is DssTest {
+contract MultiOsmStopSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
@@ -44,7 +44,7 @@ contract UniversalOsmStopSpellTest is DssTest {
     address chief;
     OsmMomLike osmMom;
     IlkRegistryLike ilkReg;
-    UniversalOsmStopSpell spell;
+    MultiOsmStopSpell spell;
 
     mapping(bytes32 => bool) ilksToIgnore;
 
@@ -56,7 +56,7 @@ contract UniversalOsmStopSpellTest is DssTest {
         chief = dss.chainlog.getAddress("MCD_ADM");
         osmMom = OsmMomLike(dss.chainlog.getAddress("OSM_MOM"));
         ilkReg = IlkRegistryLike(dss.chainlog.getAddress("ILK_REGISTRY"));
-        spell = new UniversalOsmStopSpell();
+        spell = new MultiOsmStopSpell();
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
 
@@ -108,7 +108,7 @@ contract UniversalOsmStopSpellTest is DssTest {
         }
     }
 
-    function testUniversalOracleStopOnSchedule() public {
+    function testMultiOracleStopOnSchedule() public {
         _checkOsmStoppedStatus({ilks: ilkReg.list(), expected: 0});
         assertFalse(spell.done(), "before: spell already done");
 
@@ -118,7 +118,7 @@ contract UniversalOsmStopSpellTest is DssTest {
         assertTrue(spell.done(), "after: spell not done");
     }
 
-    function testUniversalOracleStopInBatches_Fuzz(uint256 batchSize) public {
+    function testMultiOracleStopInBatches_Fuzz(uint256 batchSize) public {
         batchSize = bound(batchSize, 1, type(uint128).max);
         uint256 count = ilkReg.count();
         uint256 maxEnd = count - 1;
@@ -185,7 +185,7 @@ contract UniversalOsmStopSpellTest is DssTest {
         assertEq(OsmLike(ilkReg.pip("ETH-A")).stopped(), 0, "ETH-A pip was not ignored");
     }
 
-    function testRevertUniversalOracleStopWhenItDoesNotHaveTheHat() public {
+    function testRevertMultiOracleStopWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
         _checkOsmStoppedStatus({ilks: ilkReg.list(), expected: 0});

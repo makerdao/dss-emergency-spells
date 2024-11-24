@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: © 2024 Dai Foundation <www.daifoundation.org>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
@@ -10,12 +15,18 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity ^0.8.16;
 
-import {DssMultiIlkEmergencySpell} from "../DssMultiIlkEmergencySpell.sol";
+import {DssEmergencySpell} from "../DssEmergencySpell.sol";
+
+interface IlkRegistryLike {
+    function count() external view returns (uint256);
+    function list() external view returns (bytes32[] memory);
+    function list(uint256 start, uint256 end) external view returns (bytes32[] memory);
+}
 
 interface LineMomLike {
     function autoLine() external view returns (address);
     function ilks(bytes32 ilk) external view returns (uint256);
-    function wipe(bytes32 ilk) external returns (uint256);
+    function wipe(bytes32 ilk) external;
 }
 
 interface AutoLineLike {
@@ -34,73 +45,77 @@ interface VatLike {
     function wards(address who) external view returns (uint256);
 }
 
-/// @title Emergency Spell: Multi Line Wipe
-/// @notice Prevents further debt from being generated for the specified ilks.
-/// @custom:authors [amusingaxl]
-/// @custom:reviewers []
-/// @custom:auditors []
-/// @custom:bounties []
-contract MultiLineWipeSpell is DssMultiIlkEmergencySpell {
-    /// @notice The LineMom from chainlog.
+contract MultiLineWipeSpell is DssEmergencySpell {
+    string public constant override description = "Emergency Spell | Multi Line Wipe";
+
+    IlkRegistryLike public immutable ilkReg = IlkRegistryLike(_log.getAddress("ILK_REGISTRY"));
     LineMomLike public immutable lineMom = LineMomLike(_log.getAddress("LINE_MOM"));
-    /// @notice The AutoLine IAM.
     AutoLineLike public immutable autoLine = AutoLineLike(LineMomLike(_log.getAddress("LINE_MOM")).autoLine());
-    /// @notice The Vat from chainlog.
     VatLike public immutable vat = VatLike(_log.getAddress("MCD_VAT"));
 
-    /// @notice Emitted when the spell is scheduled.
-    /// @param ilk The ilk for which the Clip breaker was set.
     event Wipe(bytes32 indexed ilk);
 
-    /// @param _ilks The list of ilks for which the spell should be applicable
-    /// @dev The list size is be at least 2 and less than or equal to 3.
-    ///      The multi-ilk spell is meant to be used for ilks that are a variation of tha same collateral gem
-    ///      (i.e.: ETH-A, ETH-B, ETH-C)
-    ///      There has never been a case where MCD onboarded 4 or more ilks for the same collateral gem.
-    ///      For cases where there is only one ilk for the same collateral gem, use the single-ilk version.
-    constructor(bytes32[] memory _ilks) DssMultiIlkEmergencySpell(_ilks) {}
-
-    /// @inheritdoc DssMultiIlkEmergencySpell
-    function _descriptionPrefix() internal pure override returns (string memory) {
-        return "Emergency Spell | Multi Line Wipe:";
+    /**
+     * @notice Wipes line in the Vat and auto-line (if applicable) for all possible ilks.
+     */
+    function _emergencyActions() internal override {
+        bytes32[] memory ilks = ilkReg.list();
+        _doWipe(ilks);
     }
 
-    /// @notice Wipes the line for the specified ilk..
-    /// @param _ilk The ilk to be wiped.
-    function _emergencyActions(bytes32 _ilk) internal override {
-        lineMom.wipe(_ilk);
-        emit Wipe(_ilk);
+    /**
+     * @notice Wipes line in the Vat and auto-line (if applicable) for all possible ilks in the batch.
+     * @dev This is an escape hatch to prevent this spell from being blocked in case it would hit the block gas limit.
+     *      In case `end` is greater than the ilk registry length, the iteration will be automatically capped.
+     * @param start The index to start the iteration (inclusive).
+     * @param end The index to stop the iteration (inclusive).
+     */
+    function stopBatch(uint256 start, uint256 end) external {
+        uint256 maxEnd = ilkReg.count() - 1;
+        bytes32[] memory ilks = ilkReg.list(start, end < maxEnd ? end : maxEnd);
+        _doWipe(ilks);
     }
 
-    /// @notice Returns whether the spell is done or not for the specified ilk.
-    function _done(bytes32 _ilk) internal view override returns (bool) {
-        if (vat.wards(address(lineMom)) == 0 || autoLine.wards(address(lineMom)) == 0 || lineMom.ilks(_ilk) == 0) {
+    /**
+     * @notice Wipes line in the Vat and auto-line (if applicable) for all items in the `ilks`.
+     * @param ilks The list of ilks to consider.
+     */
+    function _doWipe(bytes32[] memory ilks) internal {
+        for (uint256 i = 0; i < ilks.length; i++) {
+            if (lineMom.ilks(ilks[i]) == 0) {
+                continue;
+            }
+
+            lineMom.wipe(ilks[i]);
+            emit Wipe(ilks[i]);
+        }
+    }
+
+    /**
+     * @notice Returns whether the spell is done or not.
+     * @dev Checks if line in the Vat is zero and ilk is removed from auto-line (if applicable) for all ilks in the ilk registry.
+     *      Notice that if no action can be taken (i.e.: missing permissions, invalid config),
+     *      this function will return `true`.
+     */
+    function done() external view returns (bool) {
+        if (vat.wards(address(lineMom)) == 0 || autoLine.wards(address(lineMom)) == 0) {
             return true;
         }
 
-        (,,, uint256 line,) = vat.ilks(_ilk);
-        (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc) = autoLine.ilks(_ilk);
+        bytes32[] memory ilks = ilkReg.list();
+        for (uint256 i = 0; i < ilks.length; i++) {
+            if (lineMom.ilks(ilks[i]) == 0) {
+                continue;
+            }
 
-        return line == 0 && maxLine == 0 && gap == 0 && ttl == 0 && last == 0 && lastInc == 0;
-    }
-}
+            (,,, uint256 line,) = vat.ilks(ilks[i]);
+            (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc) = autoLine.ilks(ilks[i]);
+            // If any of the entries in auto-line or vat line have non zero values, then the spell is applicable.
+            if (!(line == 0 && maxLine == 0 && gap == 0 && ttl == 0 && last == 0 && lastInc == 0)) {
+                return false;
+            }
+        }
 
-/// @title Emergency Spell Factory: Multi Line Wipe
-/// @notice On-chain factory to deploy Multi Line Wipe emergency spells.
-/// @custom:authors [amusingaxl]
-/// @custom:reviewers []
-/// @custom:auditors []
-/// @custom:bounties []
-contract MultiLineWipeFactory {
-    /// @notice A new MultiLineWipeSpell has been deployed.
-    /// @param ilks The list of ilks for which the spell is applicable.
-    /// @param spell The deployed spell address.
-    event Deploy(bytes32[] indexed ilks, address spell);
-
-    /// @notice Deploys a MultiLineWipeSpell contract.
-    /// @param ilks The list of ilks for which the spell is applicable.
-    function deploy(bytes32[] memory ilks) external returns (address spell) {
-        spell = address(new MultiLineWipeSpell(ilks));
-        emit Deploy(ilks, spell);
+        return true;
     }
 }

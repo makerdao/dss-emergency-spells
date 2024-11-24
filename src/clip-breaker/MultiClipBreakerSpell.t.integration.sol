@@ -17,183 +17,177 @@ pragma solidity ^0.8.16;
 
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
-import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {MultiClipBreakerSpell, MultiClipBreakerFactory} from "./MultiClipBreakerSpell.sol";
+import {MultiClipBreakerSpell} from "./MultiClipBreakerSpell.sol";
 
 interface IlkRegistryLike {
+    function count() external view returns (uint256);
+    function list() external view returns (bytes32[] memory);
+    function list(uint256 start, uint256 end) external view returns (bytes32[] memory);
     function xlip(bytes32 ilk) external view returns (address);
-    function file(bytes32 ilk, bytes32 what, address data) external;
 }
 
-interface ClipperMomLike {
-    function setBreaker(address clip, uint256 level, uint256 delay) external;
+interface WardsLike {
+    function wards(address who) external view returns (uint256);
 }
 
 interface ClipLike {
     function stopped() external view returns (uint256);
-    function deny(address who) external;
 }
 
-abstract contract MultiClipBreakerSpellTest is DssTest {
+contract MultiClipBreakerSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
     DssInstance dss;
-    address pauseProxy;
     address chief;
     IlkRegistryLike ilkReg;
-    ClipperMomLike clipperMom;
-    bytes32[] ilks;
-    ClipLike clipA;
-    ClipLike clipB;
-    ClipLike clipC;
-    MultiClipBreakerFactory factory;
-    DssEmergencySpellLike spell;
+    address clipperMom;
+    MultiClipBreakerSpell spell;
+
+    mapping(bytes32 => bool) ilksToIgnore;
 
     function setUp() public {
         vm.createSelectFork("mainnet");
 
         dss = MCD.loadFromChainlog(CHAINLOG);
         MCD.giveAdminAccess(dss);
-        pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         chief = dss.chainlog.getAddress("MCD_ADM");
         ilkReg = IlkRegistryLike(dss.chainlog.getAddress("ILK_REGISTRY"));
-        clipperMom = ClipperMomLike(dss.chainlog.getAddress("CLIPPER_MOM"));
-        _setUpSub();
-        factory = new MultiClipBreakerFactory();
-        spell = DssEmergencySpellLike(factory.deploy(ilks));
+        clipperMom = dss.chainlog.getAddress("CLIPPER_MOM");
+        spell = new MultiClipBreakerSpell();
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
+
+        _initIlksToIgnore();
 
         vm.makePersistent(chief);
     }
 
-    function _setUpSub() internal virtual;
+    /// @dev Ignore any of:
+    ///      - non-Clip contracts.
+    ///      - Clip contracts that are already stopped at some level.
+    ///      - Clip contracts that did not rely on ClipperMom.
+    function _initIlksToIgnore() internal {
+        bytes32[] memory ilks = ilkReg.list();
+        for (uint256 i = 0; i < ilks.length; i++) {
+            string memory ilkStr = string(abi.encodePacked(ilks[i]));
+            address clip = ilkReg.xlip(ilks[i]);
+            if (clip == address(0)) {
+                ilksToIgnore[ilks[i]] = true;
+                emit log_named_string("Ignoring ilk | No clipper", ilkStr);
+                continue;
+            }
 
-    function testClipBreakerOnSchedule() public {
-        assertEq(clipA.stopped(), 0, "ClipA: before: clip already stopped");
-        assertFalse(spell.done(), "ClipA: before: spell already done");
-        assertEq(clipB.stopped(), 0, "ClipB: before: clip already stopped");
-        assertFalse(spell.done(), "ClipB: before: spell already done");
-        if (ilks.length > 2) {
-            assertEq(clipC.stopped(), 0, "ClipC: before: clip already stopped");
-        }
-        assertFalse(spell.done(), "ClipC: before: spell already done");
+            try ClipLike(clip).stopped() returns (uint256 stopped) {
+                if (stopped == 3) {
+                    ilksToIgnore[ilks[i]] = true;
+                    emit log_named_string("Ignoring ilk | Clip already has stopped = 3", ilkStr);
+                    continue;
+                }
+            } catch {
+                // Most likely not a Clip instance.
+                ilksToIgnore[ilks[i]] = true;
+                emit log_named_string("Ignoring ilk | Not a Clip", ilkStr);
+                continue;
+            }
 
-        vm.expectEmit(true, true, true, true);
-        emit SetBreaker(ilks[0], address(clipA));
-        vm.expectEmit(true, true, true, true);
-        emit SetBreaker(ilks[1], address(clipB));
-        if (ilks.length > 2) {
-            vm.expectEmit(true, true, true, true);
-            emit SetBreaker(ilks[2], address(clipC));
+            try WardsLike(clip).wards(clipperMom) returns (uint256 ward) {
+                if (ward == 0) {
+                    ilksToIgnore[ilks[i]] = true;
+                    emit log_named_string("Ignoring ilk | ClipperMom not authorized", ilkStr);
+                    continue;
+                }
+            } catch {
+                ilksToIgnore[ilks[i]] = true;
+                emit log_named_string("Ignoring ilk | Not a Clip", ilkStr);
+                continue;
+            }
         }
+    }
+
+    function testMultiClipBreakerOnSchedule() public {
+        _checkClipMaxStoppedStatus({ilks: ilkReg.list(), maxExpected: 2});
+        assertFalse(spell.done(), "before: spell already done");
+
         spell.schedule();
 
-        assertEq(clipA.stopped(), 3, "ClipA: after: clip not stopped");
-        assertTrue(spell.done(), "ClipA: after: spell not done");
-        assertEq(clipB.stopped(), 3, "ClipB: after: clip not stopped");
-        assertTrue(spell.done(), "ClipB: after: spell not done");
-        if (ilks.length > 2) {
-            assertEq(clipC.stopped(), 3, "ClipC: after: clip not stopped");
-            assertTrue(spell.done(), "ClipC: after: spell not done");
-        }
-    }
-
-    function testDoneWhenClipIsNotSetInIlkReg() public {
-        vm.startPrank(pauseProxy);
-        ilkReg.file(ilks[0], "xlip", address(0));
-        ilkReg.file(ilks[1], "xlip", address(0));
-        if (ilks.length > 2) {
-            ilkReg.file(ilks[2], "xlip", address(0));
-        }
-        vm.stopPrank();
-
-        assertTrue(spell.done(), "spell not done");
-    }
-
-    function testDoneWhenClipperMomIsNotWardInClip() public {
-        uint256 before = vm.snapshotState();
-
-        vm.prank(pauseProxy);
-        clipA.deny(address(clipperMom));
-        assertFalse(spell.done(), "ClipA: spell already done");
-        vm.revertToState(before);
-
-        vm.prank(pauseProxy);
-        clipB.deny(address(clipperMom));
-        assertFalse(spell.done(), "ClipB: spell already done");
-        vm.revertToState(before);
-
-        if (ilks.length > 2) {
-            vm.prank(pauseProxy);
-            clipC.deny(address(clipperMom));
-            assertFalse(spell.done(), "ClipC: spell already done");
-            vm.revertToState(before);
-        }
-
-        vm.startPrank(pauseProxy);
-        clipA.deny(address(clipperMom));
-        clipB.deny(address(clipperMom));
-        if (ilks.length > 2) {
-            clipC.deny(address(clipperMom));
-        }
-        vm.stopPrank();
+        _checkClipStoppedStatus({ilks: ilkReg.list(), expected: 3});
         assertTrue(spell.done(), "after: spell not done");
     }
 
-    function testRevertClipBreakerWhenItDoesNotHaveTheHat() public {
+    function testMultiClipBreakerInBatches_Fuzz(uint256 batchSize) public {
+        batchSize = bound(batchSize, 1, type(uint128).max);
+        uint256 count = ilkReg.count();
+        uint256 maxEnd = count - 1;
+        uint256 start = 0;
+        // End is inclusive, so we need to subtract 1
+        uint256 end = start + batchSize - 1;
+
+        _checkClipMaxStoppedStatus({ilks: ilkReg.list(), maxExpected: 2});
+
+        while (start < count) {
+            spell.setBreakerInBatch(start, end);
+
+            _checkClipStoppedStatus({ilks: ilkReg.list(start, end < maxEnd ? end : maxEnd), expected: 3});
+
+            start += batchSize;
+            end += batchSize;
+        }
+
+        // Sanity check: the test iterated over the entire ilk registry.
+        _checkClipStoppedStatus({ilks: ilkReg.list(), expected: 3});
+    }
+
+    function testUnauthorizedClipperMomShouldNotRevert() public {
+        address clipEthA = ilkReg.xlip("ETH-A");
+        // De-auth ClipperMom to force the error:
+        stdstore.target(clipEthA).sig("wards(address)").with_key(clipperMom).checked_write(bytes32(0));
+        // Updates the list of ilks to be ignored.
+        _initIlksToIgnore();
+
+        _checkClipMaxStoppedStatus({ilks: ilkReg.list(), maxExpected: 2});
+
+        vm.expectEmit(true, true, true, true);
+        emit Fail("ETH-A", clipEthA, "clipperMom-not-ward");
+        spell.schedule();
+
+        _checkClipStoppedStatus({ilks: ilkReg.list(), expected: 3});
+        assertEq(ClipLike(clipEthA).stopped(), 0, "ETH-A Clip was not ignored");
+    }
+
+    function testRevertMultiClipBreakerWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
+
+        _checkClipMaxStoppedStatus({ilks: ilkReg.list(), maxExpected: 2});
+        assertFalse(spell.done(), "before: spell already done");
 
         vm.expectRevert();
         spell.schedule();
     }
 
-    event SetBreaker(bytes32 indexed ilk, address indexed clip);
-}
+    function _checkClipMaxStoppedStatus(bytes32[] memory ilks, uint256 maxExpected) internal view {
+        assertTrue(ilks.length > 0, "empty ilks list");
 
-contract EthMultiClipBreakerSpellTest is MultiClipBreakerSpellTest {
-    function _setUpSub() internal override {
-        clipA = ClipLike(ilkReg.xlip("ETH-A"));
-        clipB = ClipLike(ilkReg.xlip("ETH-B"));
-        clipC = ClipLike(ilkReg.xlip("ETH-C"));
-        ilks = new bytes32[](3);
-        ilks[0] = "ETH-A";
-        ilks[1] = "ETH-B";
-        ilks[2] = "ETH-C";
+        for (uint256 i = 0; i < ilks.length; i++) {
+            if (ilksToIgnore[ilks[i]]) continue;
+
+            address clip = ilkReg.xlip(ilks[i]);
+            assertLe(
+                ClipLike(clip).stopped(), maxExpected, string(abi.encodePacked("invalid stopped status: ", ilks[i]))
+            );
+        }
     }
 
-    function testDescription() public view {
-        assertEq(spell.description(), "Emergency Spell | Multi Clip Breaker: ETH-A, ETH-B, ETH-C");
-    }
-}
+    function _checkClipStoppedStatus(bytes32[] memory ilks, uint256 expected) internal view {
+        assertTrue(ilks.length > 0, "empty ilks list");
 
-contract WstethMultiClipBreakerSpellTest is MultiClipBreakerSpellTest {
-    function _setUpSub() internal override {
-        clipA = ClipLike(ilkReg.xlip("WSTETH-A"));
-        clipB = ClipLike(ilkReg.xlip("WSTETH-B"));
-        ilks = new bytes32[](2);
-        ilks[0] = "WSTETH-A";
-        ilks[1] = "WSTETH-B";
+        for (uint256 i = 0; i < ilks.length; i++) {
+            if (ilksToIgnore[ilks[i]]) continue;
+
+            address clip = ilkReg.xlip(ilks[i]);
+            assertEq(ClipLike(clip).stopped(), expected, string(abi.encodePacked("invalid stopped status: ", ilks[i])));
+        }
     }
 
-    function testDescription() public view {
-        assertEq(spell.description(), "Emergency Spell | Multi Clip Breaker: WSTETH-A, WSTETH-B");
-    }
-}
-
-contract WbtcMultiClipBreakerSpellTest is MultiClipBreakerSpellTest {
-    function _setUpSub() internal override {
-        clipA = ClipLike(ilkReg.xlip("WBTC-A"));
-        clipB = ClipLike(ilkReg.xlip("WBTC-B"));
-        clipC = ClipLike(ilkReg.xlip("WBTC-C"));
-        ilks = new bytes32[](3);
-        ilks[0] = "WBTC-A";
-        ilks[1] = "WBTC-B";
-        ilks[2] = "WBTC-C";
-    }
-
-    function testDescription() public view {
-        assertEq(spell.description(), "Emergency Spell | Multi Clip Breaker: WBTC-A, WBTC-B, WBTC-C");
-    }
+    event Fail(bytes32 indexed ilk, address indexed clip, bytes reason);
 }

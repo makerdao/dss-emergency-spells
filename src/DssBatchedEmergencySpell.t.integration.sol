@@ -17,9 +17,9 @@ pragma solidity ^0.8.16;
 
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD, GodMode} from "dss-test/DssTest.sol";
-import {DssMultiIlkEmergencySpell} from "./DssMultiIlkEmergencySpell.sol";
+import {DssBatchedEmergencySpell} from "./DssBatchedEmergencySpell.sol";
 
-contract DssMultiIlkEmergencySpellImpl is DssMultiIlkEmergencySpell {
+contract DssBatchedEmergencySpellImpl is DssBatchedEmergencySpell {
     mapping(bytes32 => bool) internal _isDone;
 
     function setDone(bytes32 ilk, bool val) external {
@@ -27,12 +27,12 @@ contract DssMultiIlkEmergencySpellImpl is DssMultiIlkEmergencySpell {
     }
 
     function _descriptionPrefix() internal pure override returns (string memory) {
-        return "Multi-Ilk Emergency Spell:";
+        return "Batched Emergency Spell:";
     }
 
     event EmergencyAction(bytes32 indexed ilk);
 
-    constructor(bytes32[] memory _ilks) DssMultiIlkEmergencySpell(_ilks) {}
+    constructor(bytes32[] memory _ilks) DssBatchedEmergencySpell(_ilks) {}
 
     function _emergencyActions(bytes32 ilk) internal override {
         emit EmergencyAction(ilk);
@@ -42,11 +42,11 @@ contract DssMultiIlkEmergencySpellImpl is DssMultiIlkEmergencySpell {
         return _isDone[ilk];
     }
 }
-contract DssMultiIlkEmergencySpellTest is DssTest {
+contract DssBatchedEmergencySpellTest is DssTest {
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
     DssInstance dss;
-    DssMultiIlkEmergencySpellImpl spell2;
-    DssMultiIlkEmergencySpellImpl spell3;
+    DssBatchedEmergencySpellImpl spell2;
+    DssBatchedEmergencySpellImpl spell3;
     address pause;
 
     function setUp() public {
@@ -59,17 +59,17 @@ contract DssMultiIlkEmergencySpellTest is DssTest {
         bytes32[] memory ilks2 = new bytes32[](2);
         ilks2[0] = "WSTETH-A";
         ilks2[1] = "WSTETH-B";
-        spell2 = new DssMultiIlkEmergencySpellImpl(ilks2);
+        spell2 = new DssBatchedEmergencySpellImpl(ilks2);
         bytes32[] memory ilks3 = new bytes32[](3);
         ilks3[0] = "ETH-A";
         ilks3[1] = "ETH-B";
         ilks3[2] = "ETH-C";
-        spell3 = new DssMultiIlkEmergencySpellImpl(ilks3);
+        spell3 = new DssBatchedEmergencySpellImpl(ilks3);
     }
 
     function testDescription() public view {
-        assertEq(spell2.description(), "Multi-Ilk Emergency Spell: WSTETH-A, WSTETH-B");
-        assertEq(spell3.description(), "Multi-Ilk Emergency Spell: ETH-A, ETH-B, ETH-C");
+        assertEq(spell2.description(), "Batched Emergency Spell: WSTETH-A, WSTETH-B");
+        assertEq(spell3.description(), "Batched Emergency Spell: ETH-A, ETH-B, ETH-C");
     }
 
     function testEmergencyActions() public {

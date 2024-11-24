@@ -40,8 +40,8 @@ TBD.
 
 ## Implemented Actions
 
-| Description        | Single ilk         | Multi-ilk          | Universal          |
-| :----------        | :--------:         | :-------:          | :-------:          |
+| Description        | Single-ilk         | Batched            | Multi              |
+| :----------        | :--------:         | :-----:            | :---:              |
 | Wipe `line`        | :white_check_mark: | :white_check_mark: | :white_check_mark: |
 | Set `Clip` breaker | :white_check_mark: | :white_check_mark: | :white_check_mark: |
 | Disable `DDM`      | :white_check_mark: | :x:                | :x:                |
@@ -123,8 +123,8 @@ constructor.</sub>
 Some types of emergency spells may come in 3 flavors:
 
 1. Single-ilk: applies the desired spell action to a single pre-defined ilk.
-1. Multi-ilk: applies the desired spell action to a list of related ilks (i.e.: `ETH-A`, `ETH-B` and `ETH-C`)
-1. Universal: applies the desired spell action to all applicable ilks.
+1. Batched: applies the desired spell action to a list of related ilks (i.e.: `ETH-A`, `ETH-B` and `ETH-C`)
+1. Multi: applies the desired spell action to all applicable ilks.
 
 Furthermore, this repo provides on-chain factories for single ilk emergency spells to make it easier to deploy for new
 ilks.

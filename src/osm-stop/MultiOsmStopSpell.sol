@@ -33,8 +33,8 @@ interface OsmLike {
     function wards(address who) external view returns (uint256);
 }
 
-contract UniversalOsmStopSpell is DssEmergencySpell {
-    string public constant override description = "Emergency Spell | Universal OSM Stop";
+contract MultiOsmStopSpell is DssEmergencySpell {
+    string public constant override description = "Emergency Spell | Multi OSM Stop";
 
     IlkRegistryLike public immutable ilkReg = IlkRegistryLike(_log.getAddress("ILK_REGISTRY"));
     OsmMomLike public immutable osmMom = OsmMomLike(_log.getAddress("OSM_MOM"));

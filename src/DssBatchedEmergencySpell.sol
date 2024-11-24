@@ -17,17 +17,17 @@ pragma solidity ^0.8.16;
 
 import {DssEmergencySpell, DssEmergencySpellLike} from "./DssEmergencySpell.sol";
 
-interface DssMultiIlkEmergencySpellLike is DssEmergencySpellLike {
+interface DssBatchedEmergencySpellLike is DssEmergencySpellLike {
     function ilks() external view returns (bytes32[] memory);
 }
 
-/// @title Multi-ilk Emergency Spell
-/// @notice Defines the base implementation for multi-ilk emergency spells.
+/// @title Batched Emergency Spell
+/// @notice Defines the base implementation for batched emergency spells.
 /// @custom:authors [amusingaxl]
 /// @custom:reviewers []
 /// @custom:auditors []
 /// @custom:bounties []
-abstract contract DssMultiIlkEmergencySpell is DssEmergencySpell, DssMultiIlkEmergencySpellLike {
+abstract contract DssBatchedEmergencySpell is DssEmergencySpell, DssBatchedEmergencySpellLike {
     /// @dev The total number of ilks in the spell.
     uint256 internal immutable _totalIlks;
     /// @dev The 0th ilk to which the spell should be applicable.
@@ -43,7 +43,7 @@ abstract contract DssMultiIlkEmergencySpell is DssEmergencySpell, DssMultiIlkEme
 
     /// @param _ilks The list of ilks for which the spell should be applicable
     /// @dev The list size is be at least 2 and less than or equal to 3.
-    ///      The multi-ilk spell is meant to be used for ilks that are a variation of tha same collateral gem
+    ///      The batched spell is meant to be used for ilks that are a variation of tha same collateral gem
     ///      (i.e.: ETH-A, ETH-B, ETH-C)
     ///      There has never been a case where MCD onboarded 4 or more ilks for the same collateral gem.
     ///      For cases where there is only one ilk for the same collateral gem, use the single-ilk version.
@@ -51,8 +51,8 @@ abstract contract DssMultiIlkEmergencySpell is DssEmergencySpell, DssMultiIlkEme
         // This is a workaround to Solidity's lack of support for immutable arrays, as described in
         // https://github.com/ethereum/solidity/issues/12587
         uint256 len = _ilks.length;
-        require(len >= MIN_LIST_SIZE, "DssMultiIlkEmergencySpell/too-few-ilks");
-        require(len <= MAX_LIST_SIZE, "DssMultiIlkEmergencySpell/too-many-ilks");
+        require(len >= MIN_LIST_SIZE, "DssBatchedEmergencySpell/too-few-ilks");
+        require(len <= MAX_LIST_SIZE, "DssBatchedEmergencySpell/too-many-ilks");
         _totalIlks = len;
 
         _ilk0 = _ilks[0];

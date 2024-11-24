@@ -15,106 +15,132 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity ^0.8.16;
 
-import {DssMultiIlkEmergencySpell} from "../DssMultiIlkEmergencySpell.sol";
+import {DssEmergencySpell} from "../DssEmergencySpell.sol";
+
+interface IlkRegistryLike {
+    function count() external view returns (uint256);
+    function list() external view returns (bytes32[] memory);
+    function list(uint256 start, uint256 end) external view returns (bytes32[] memory);
+    function xlip(bytes32 ilk) external view returns (address);
+}
 
 interface ClipperMomLike {
     function setBreaker(address clip, uint256 level, uint256 delay) external;
 }
 
 interface ClipLike {
-    function stopped() external view returns (uint256);
     function wards(address who) external view returns (uint256);
+    function stopped() external view returns (uint256);
 }
 
-interface IlkRegistryLike {
-    function xlip(bytes32 ilk) external view returns (address);
-}
-
-/// @title Emergency Spell: Multi Clip Breaker
-/// @notice Prevents further collateral auctions to be held in the respective Clip contracts.
-/// @custom:authors [amusingaxl]
-/// @custom:reviewers []
-/// @custom:auditors []
-/// @custom:bounties []
-contract MultiClipBreakerSpell is DssMultiIlkEmergencySpell {
-    /// @notice The ClipperMom from chainlog.
-    ClipperMomLike public immutable clipperMom = ClipperMomLike(_log.getAddress("CLIPPER_MOM"));
-    /// @notice The IlkRegistry from chainlog.
-    IlkRegistryLike public immutable ilkReg = IlkRegistryLike(_log.getAddress("ILK_REGISTRY"));
-
-    /// @dev During an emergency, set the breaker level to 3 to prevent `kick()`, `redo()` and `take()`.
-    uint256 internal constant BREAKER_LEVEL = 3;
+contract MultiClipBreakerSpell is DssEmergencySpell {
+    string public constant override description = "Emergency Spell | Multi Clip Breaker";
+    /// @dev During an emergency, set the breaker level to 3  to prevent both `kick()`, `redo()` and `take()`.
+    uint256 public constant BREAKER_LEVEL = 3;
     /// @dev The delay is not applicable for level 3 breakers, so we set it to zero.
-    uint256 internal constant BREAKER_DELAY = 0;
+    uint256 public constant BREAKER_DELAY = 0;
 
-    /// @notice Emitted when the spell is scheduled.
-    /// @param ilk The ilk for which the Clip breaker was set.
-    /// @param clip The address of the Clip contract.
+    IlkRegistryLike public immutable ilkReg = IlkRegistryLike(_log.getAddress("ILK_REGISTRY"));
+    ClipperMomLike public immutable clipperMom = ClipperMomLike(_log.getAddress("CLIPPER_MOM"));
+
     event SetBreaker(bytes32 indexed ilk, address indexed clip);
+    event Fail(bytes32 indexed ilk, address indexed clip, bytes reason);
 
-    /// @param _ilks The list of ilks for which the spell should be applicable
-    /// @dev The list size is be at least 2 and less than or equal to 3.
-    ///      The multi-ilk spell is meant to be used for ilks that are a variation of tha same collateral gem
-    ///      (i.e.: ETH-A, ETH-B, ETH-C)
-    ///      There has never been a case where MCD onboarded 4 or more ilks for the same collateral gem.
-    ///      For cases where there is only one ilk for the same collateral gem, use the single-ilk version.
-    constructor(bytes32[] memory _ilks) DssMultiIlkEmergencySpell(_ilks) {}
-
-    /// @inheritdoc DssMultiIlkEmergencySpell
-    function _descriptionPrefix() internal pure override returns (string memory) {
-        return "Emergency Spell | Multi Clip Breaker:";
+    /**
+     * @notice Sets breakers, when possible, for all Clip instances that can be found in the ilk registry.
+     */
+    function _emergencyActions() internal override {
+        bytes32[] memory ilks = ilkReg.list();
+        _doSetBreaker(ilks);
     }
 
-    /// @notice Sets the breaker for the related Clip contract.
-    /// @inheritdoc DssMultiIlkEmergencySpell
-    function _emergencyActions(bytes32 _ilk) internal override {
-        address clip = ilkReg.xlip(_ilk);
-        clipperMom.setBreaker(clip, BREAKER_LEVEL, BREAKER_DELAY);
-        emit SetBreaker(_ilk, clip);
+    /**
+     * @notice Sets breakers for all Clips in the batch.
+     * @dev This is an escape hatch to prevent this spell from being blocked in case it would hit the block gas limit.
+     *      In case `end` is greater than the ilk registry length, the iteration will be automatically capped.
+     * @param start The index to start the iteration (inclusive).
+     * @param end The index to stop the iteration (inclusive).
+     */
+    function setBreakerInBatch(uint256 start, uint256 end) external {
+        uint256 maxEnd = ilkReg.count() - 1;
+        bytes32[] memory ilks = ilkReg.list(start, end < maxEnd ? end : maxEnd);
+        _doSetBreaker(ilks);
     }
 
-    /// @notice Returns whether the spell is done or not for the specified ilk.
-    function _done(bytes32 _ilk) internal view override returns (bool) {
-        address clip = ilkReg.xlip(_ilk);
-        if (clip == address(0)) {
-            return true;
-        }
+    /**
+     * @notice Sets breakers, when possible, for all Clip instances that can be found from the `ilks` list.
+     * @param ilks The list of ilks to consider.
+     */
+    function _doSetBreaker(bytes32[] memory ilks) internal {
+        for (uint256 i = 0; i < ilks.length; i++) {
+            address clip = ilkReg.xlip(ilks[i]);
 
-        try ClipLike(clip).wards(address(clipperMom)) returns (uint256 ward) {
-            // Ignore Clip instances that have not relied on ClipperMom.
-            if (ward == 0) {
-                return true;
+            if (clip == address(0)) {
+                continue;
             }
-        } catch {
-            // If the call failed, it means the contract is most likely not a Clip instance.
-            return true;
-        }
 
-        try ClipLike(clip).stopped() returns (uint256 stopped) {
-            return stopped == BREAKER_LEVEL;
-        } catch {
-            // If the call failed, it means the contract is most likely not a Clip instance.
-            return true;
+            try ClipLike(clip).wards(address(clipperMom)) returns (uint256 ward) {
+                if (ward == 0) {
+                    emit Fail(ilks[i], clip, "clipperMom-not-ward");
+                    continue;
+                }
+            } catch (bytes memory reason) {
+                emit Fail(ilks[i], clip, reason);
+                continue;
+            }
+
+            try clipperMom.setBreaker(clip, BREAKER_LEVEL, BREAKER_DELAY) {
+                emit SetBreaker(ilks[i], clip);
+            } catch Error(string memory reason) {
+                // If the spell does not have the hat, it cannot be executed, so we must halt it.
+                require(!_strEq(reason, "ClipperMom/not-authorized"), reason);
+                // Whatever other reason we just ignore and move on.
+                emit Fail(ilks[i], clip, bytes(reason));
+            } catch (bytes memory reason) {
+                emit Fail(ilks[i], clip, reason);
+            }
         }
     }
-}
 
-/// @title Emergency Spell Factory: Multi Clip Breaker
-/// @notice On-chain factory to deploy Multi Clip Breaker emergency spells.
-/// @custom:authors [amusingaxl]
-/// @custom:reviewers []
-/// @custom:auditors []
-/// @custom:bounties []
-contract MultiClipBreakerFactory {
-    /// @notice A new MultiClipBreakerSpell has been deployed.
-    /// @param ilks The list of ilks for which the spell is applicable.
-    /// @param spell The deployed spell address.
-    event Deploy(bytes32[] indexed ilks, address spell);
+    /**
+     * @notice Returns whether the spell is done or not.
+     * @dev Checks if all possible Clip instances from the ilk registry have stopped = 3.
+     */
+    function done() external view returns (bool) {
+        bytes32[] memory ilks = ilkReg.list();
+        for (uint256 i = 0; i < ilks.length; i++) {
+            address clip = ilkReg.xlip(ilks[i]);
 
-    /// @notice Deploys a MultiClipBreakerSpell contract.
-    /// @param ilks The list of ilks for which the spell is applicable.
-    function deploy(bytes32[] memory ilks) external returns (address spell) {
-        spell = address(new MultiClipBreakerSpell(ilks));
-        emit Deploy(ilks, spell);
+            if (clip == address(0)) {
+                continue;
+            }
+
+            try ClipLike(clip).wards(address(clipperMom)) returns (uint256 ward) {
+                // Ignore Clip instances that have not relied on ClipperMom.
+                if (ward == 0) {
+                    continue;
+                }
+            } catch {
+                // If the call failed, it means the contract is most likely not a Clip instance, so it can be ignored.
+                continue;
+            }
+
+            try ClipLike(clip).stopped() returns (uint256 stopped) {
+                if (stopped != BREAKER_LEVEL) {
+                    return false;
+                }
+            } catch {
+                // If the call failed, it means the contract is most likely not a Clip instance, so it can be ignored.
+                continue;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @notice Checks if strings a and b are the same.
+     */
+    function _strEq(string memory a, string memory b) internal pure returns (bool) {
+        return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 }

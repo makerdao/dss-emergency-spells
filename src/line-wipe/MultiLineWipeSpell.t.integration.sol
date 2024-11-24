@@ -17,217 +17,149 @@ pragma solidity ^0.8.16;
 
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
-import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {MultiLineWipeSpell, MultiLineWipeFactory} from "./MultiLineWipeSpell.sol";
+import {MultiLineWipeSpell} from "./MultiLineWipeSpell.sol";
+
+interface LineMomLike {
+    function ilks(bytes32 ilk) external view returns (uint256);
+    function autoLine() external view returns (address);
+}
+
+interface IlkRegistryLike {
+    function count() external view returns (uint256);
+    function list() external view returns (bytes32[] memory);
+    function list(uint256 start, uint256 end) external view returns (bytes32[] memory);
+}
 
 interface AutoLineLike {
     function ilks(bytes32 ilk)
         external
         view
         returns (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc);
-    function setIlk(bytes32 ilk, uint256 maxLine, uint256 gap, uint256 ttl) external;
-}
-
-interface LineMomLike {
-    function delIlk(bytes32 ilk) external;
 }
 
 interface VatLike {
     function file(bytes32 ilk, bytes32 what, uint256 data) external;
 }
 
-
-abstract contract MultiLineWipeSpellTest is DssTest {
+contract MultiLineWipeSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
     DssInstance dss;
-    address pauseProxy;
-    VatLike vat;
     address chief;
+    VatLike vat;
+    IlkRegistryLike ilkReg;
     LineMomLike lineMom;
     AutoLineLike autoLine;
-    bytes32[] ilks;
-    MultiLineWipeFactory factory;
-    DssEmergencySpellLike spell;
+    MultiLineWipeSpell spell;
+
+    mapping(bytes32 => bool) ilksToIgnore;
 
     function setUp() public {
         vm.createSelectFork("mainnet");
 
         dss = MCD.loadFromChainlog(CHAINLOG);
         MCD.giveAdminAccess(dss);
-        pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
-        vat = VatLike(dss.chainlog.getAddress("MCD_VAT"));
         chief = dss.chainlog.getAddress("MCD_ADM");
+        vat = VatLike(dss.chainlog.getAddress("MCD_VAT"));
+        ilkReg = IlkRegistryLike(dss.chainlog.getAddress("ILK_REGISTRY"));
         lineMom = LineMomLike(dss.chainlog.getAddress("LINE_MOM"));
-        autoLine = AutoLineLike(dss.chainlog.getAddress("MCD_IAM_AUTO_LINE"));
-        _setUpSub();
-        factory = new MultiLineWipeFactory();
-        spell = DssEmergencySpellLike(factory.deploy(ilks));
+        autoLine = AutoLineLike(lineMom.autoLine());
+        spell = new MultiLineWipeSpell();
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
+
+        _initIlksToIgnore();
 
         vm.makePersistent(chief);
     }
 
-    function _setUpSub() internal virtual;
+    /// @dev Ignore any of:
+    ///      - ilk was not set in LineMom
+    ///      - ilk line is already zero and/or wiped from auto-line
+    function _initIlksToIgnore() internal {
+        bytes32[] memory ilks = ilkReg.list();
+        for (uint256 i = 0; i < ilks.length; i++) {
+            string memory ilkStr = string(abi.encodePacked(ilks[i]));
+            if (lineMom.ilks(ilks[i]) == 0) {
+                ilksToIgnore[ilks[i]] = true;
+                emit log_named_string("Ignoring ilk | LineMom not set", ilkStr);
+                continue;
+            }
 
-    function testAutoLineWipeOnSchedule() public {
-        uint256 pmaxLine;
-        uint256 pgap;
-
-        (pmaxLine, pgap,,,) = autoLine.ilks(ilks[0]);
-        assertGt(pmaxLine, 0, "ilk0: before: auto-line maxLine already wiped");
-        assertGt(pgap, 0, "ilk0: before: auto-line gap already wiped");
-        assertFalse(spell.done(), "ilk0: before: spell already done");
-
-        (pmaxLine, pgap,,,) = autoLine.ilks(ilks[1]);
-        assertGt(pmaxLine, 0, "ilk1: before: auto-line maxLine already wiped");
-        assertGt(pgap, 0, "ilk1: before: auto-line gap already wiped");
-        assertFalse(spell.done(), "ilk1: before: spell already done");
-
-        if (ilks.length > 2) {
-            (pmaxLine, pgap,,,) = autoLine.ilks(ilks[2]);
-            assertGt(pmaxLine, 0, "ilk2: before: auto-line maxLine already wiped");
-            assertGt(pgap, 0, "ilk2: before: auto-line gap already wiped");
-            assertFalse(spell.done(), "ilk2: before: spell already done");
-        }
-
-        vm.expectEmit(true, true, true, false);
-        emit Wipe(ilks[0]);
-        vm.expectEmit(true, true, true, false);
-        emit Wipe(ilks[1]);
-        if (ilks.length > 2) {
-            vm.expectEmit(true, true, true, false);
-            emit Wipe(ilks[2]);
-        }
-        spell.schedule();
-
-        uint256 maxLine;
-        uint256 gap;
-
-        (maxLine, gap,,,) = autoLine.ilks(ilks[0]);
-        assertEq(maxLine, 0, "ilk0: after: auto-line maxLine not wiped");
-        assertEq(gap, 0, "ilk0: after: auto-line gap not wiped (gap)");
-        assertTrue(spell.done(), "ilk0: after: spell not done");
-
-        (maxLine, gap,,,) = autoLine.ilks(ilks[1]);
-        assertEq(maxLine, 0, "ilk1: after: auto-line maxLine not wiped");
-        assertEq(gap, 0, "ilk1: after: auto-line gap not wiped");
-        assertTrue(spell.done(), "ilk1: after: spell not done");
-
-        if (ilks.length > 2) {
-            (maxLine, gap,,,) = autoLine.ilks(ilks[2]);
-            assertEq(maxLine, 0, "ilk2: after: auto-line maxLine not wiped");
-            assertEq(gap, 0, "ilk2: after: auto-line gap not wiped (gap)");
-            assertTrue(spell.done(), "ilk2: after: spell not done");
+            (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc) = autoLine.ilks(ilks[i]);
+            if (maxLine == 0 && gap == 0 && ttl == 0 && last == 0 && lastInc == 0) {
+                ilksToIgnore[ilks[i]] = true;
+                emit log_named_string("Ignoring ilk | Already wiped", ilkStr);
+                continue;
+            }
         }
     }
 
-    function testDoneWhenIlkIsNotAddedToLineMom() public {
-        uint256 before = vm.snapshotState();
+    function testMultiOracleStopOnSchedule() public {
+        _checkLineWipedStatus({ilks: ilkReg.list(), expected: false});
+        assertFalse(spell.done(), "before: spell already done");
 
-        vm.prank(pauseProxy);
-        lineMom.delIlk(ilks[0]);
-        assertFalse(spell.done(), "ilk0: spell done");
-        vm.revertToState(before);
+        spell.schedule();
 
-        vm.prank(pauseProxy);
-        lineMom.delIlk(ilks[1]);
-        assertFalse(spell.done(), "ilk1: spell done");
-        vm.revertToState(before);
+        _checkLineWipedStatus({ilks: ilkReg.list(), expected: true});
+        assertTrue(spell.done(), "after: spell not done");
+    }
 
-        if (ilks.length > 2) {
-            vm.prank(pauseProxy);
-            lineMom.delIlk(ilks[2]);
-            assertFalse(spell.done(), "ilk2: spell done");
-            vm.revertToState(before);
+    function testMultiOracleStopInBatches_Fuzz(uint256 batchSize) public {
+        batchSize = bound(batchSize, 1, type(uint128).max);
+        uint256 count = ilkReg.count();
+        uint256 maxEnd = count - 1;
+        uint256 start = 0;
+        // End is inclusive, so we need to subtract 1
+        uint256 end = start + batchSize - 1;
+
+        _checkLineWipedStatus({ilks: ilkReg.list(), expected: false});
+
+        while (start < count) {
+            spell.stopBatch(start, end);
+            _checkLineWipedStatus({ilks: ilkReg.list(start, end < maxEnd ? end : maxEnd), expected: true});
+
+            start += batchSize;
+            end += batchSize;
         }
 
-        vm.startPrank(pauseProxy);
-        lineMom.delIlk(ilks[0]);
-        lineMom.delIlk(ilks[1]);
-        if (ilks.length > 2) {
-            lineMom.delIlk(ilks[2]);
-        }
-        assertTrue(spell.done(), "spell not done");
+        // Sanity check: the test iterated over the entire ilk registry.
+        _checkLineWipedStatus({ilks: ilkReg.list(), expected: true});
     }
 
     function testDoneWhenAutoLineIsNotActiveButLineIsNonZero() public {
-        uint256 before = vm.snapshotState();
-
         spell.schedule();
         assertTrue(spell.done(), "before: spell not done");
 
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
         vm.prank(pauseProxy);
-        vat.file(ilks[0], "line", 10 ** 45);
-        assertFalse(spell.done(), "ilk0: after: spell still done");
-        vm.revertToState(before);
+        vat.file("ETH-A", "line", 10 ** 45);
 
-        vm.prank(pauseProxy);
-        vat.file(ilks[1], "line", 10 ** 45);
-        assertFalse(spell.done(), "ilk1: after: spell still done");
-        vm.revertToState(before);
-
-        if (ilks.length > 2) {
-            vm.prank(pauseProxy);
-            vat.file(ilks[2], "line", 10 ** 45);
-            assertFalse(spell.done(), "ilk2: after: spell still done");
-            vm.revertToState(before);
-        }
+        assertFalse(spell.done(), "after: spell still done");
     }
 
-    function testRevertAutoLineWipeWhenItDoesNotHaveTheHat() public {
+    function testRevertMultiOracleStopWhenItDoesNotHaveTheHat() public {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
+
+        _checkLineWipedStatus({ilks: ilkReg.list(), expected: false});
 
         vm.expectRevert();
         spell.schedule();
     }
 
-    event Wipe(bytes32 indexed ilk);
-}
+    function _checkLineWipedStatus(bytes32[] memory ilks, bool expected) internal view {
+        assertTrue(ilks.length > 0, "empty ilks list");
 
-contract EthMultiLineWipeSpellTest is MultiLineWipeSpellTest {
-    function _setUpSub() internal override {
-        ilks = new bytes32[](3);
-        ilks[0] = "ETH-A";
-        ilks[1] = "ETH-B";
-        ilks[2] = "ETH-C";
-    }
+        for (uint256 i = 0; i < ilks.length; i++) {
+            if (ilksToIgnore[ilks[i]]) continue;
 
-    function testDescription() public view {
-        assertEq(spell.description(), "Emergency Spell | Multi Line Wipe: ETH-A, ETH-B, ETH-C");
-    }
-}
-
-contract WstethMultiLineWipeSpellTest is MultiLineWipeSpellTest {
-    function _setUpSub() internal override {
-        ilks = new bytes32[](2);
-        ilks[0] = "WSTETH-A";
-        ilks[1] = "WSTETH-B";
-    }
-
-    function testDescription() public view {
-        assertEq(spell.description(), "Emergency Spell | Multi Line Wipe: WSTETH-A, WSTETH-B");
-    }
-}
-
-contract WbtcMultiLineWipeSpellTest is MultiLineWipeSpellTest {
-    function _setUpSub() internal override {
-        ilks = new bytes32[](3);
-        ilks[0] = "WBTC-A";
-        ilks[1] = "WBTC-B";
-        ilks[2] = "WBTC-C";
-
-        // WBTC debt ceiling was set to zero when this test was written, so we need to overwrite the state.
-        vm.startPrank(pauseProxy);
-        autoLine.setIlk(ilks[0], 1, 1, 1);
-        autoLine.setIlk(ilks[1], 1, 1, 1);
-        autoLine.setIlk(ilks[2], 1, 1, 1);
-        vm.stopPrank();
-    }
-
-    function testDescription() public view {
-        assertEq(spell.description(), "Emergency Spell | Multi Line Wipe: WBTC-A, WBTC-B, WBTC-C");
+            (uint256 maxLine, uint256 gap, uint48 ttl, uint48 last, uint48 lastInc) = autoLine.ilks(ilks[i]);
+            assertEq(
+                maxLine == 0 && gap == 0 && ttl == 0 && last == 0 && lastInc == 0,
+                expected,
+                string(abi.encodePacked("invalid wiped status: ", ilks[i]))
+            );
+        }
     }
 }

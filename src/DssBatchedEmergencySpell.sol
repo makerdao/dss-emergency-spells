@@ -118,12 +118,6 @@ abstract contract DssBatchedEmergencySpell is DssEmergencySpell, DssBatchedEmerg
     function _emergencyActions(bytes32 _ilk) internal virtual;
 
     /// @notice Returns whether the spell is done for all ilks or not.
-    /// @dev Checks if all Clip instances have stopped = 3.
-    ///      The spell would revert if any of the following conditions holds:
-    ///          1. Clip is set to address(0)
-    ///          2. ClipperMom is not a ward on Clip
-    ///          3. Clip does not implement the `stopped` function
-    ///      In such cases, it returns `true`, meaning no further action can be taken at the moment.
     /// @return res Whether the spells is done or not.
     function done() external view returns (bool res) {
         res = _done(_ilk0) && _done(_ilk1);

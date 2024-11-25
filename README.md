@@ -40,7 +40,7 @@ TBD.
 
 ## Implemented Actions
 
-| Description        | Single-ilk         | Batched            | Multi              |
+| Description        | Single-ilk         | Batched            | Multi-ilk / Global |
 | :----------        | :--------:         | :-----:            | :---:              |
 | Wipe `line`        | :white_check_mark: | :white_check_mark: | :white_check_mark: |
 | Set `Clip` breaker | :white_check_mark: | :white_check_mark: | :white_check_mark: |

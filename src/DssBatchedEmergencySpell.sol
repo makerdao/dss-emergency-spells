@@ -28,6 +28,11 @@ interface DssBatchedEmergencySpellLike is DssEmergencySpellLike {
 /// @custom:auditors []
 /// @custom:bounties []
 abstract contract DssBatchedEmergencySpell is DssEmergencySpell, DssBatchedEmergencySpellLike {
+    /// @dev The min size for the list of ilks
+    uint256 public constant MIN_ILKS = 2;
+    /// @dev The max size for the list of ilks
+    uint256 public constant MAX_ILKS = 3;
+
     /// @dev The total number of ilks in the spell.
     uint256 internal immutable _totalIlks;
     /// @dev The 0th ilk to which the spell should be applicable.
@@ -36,10 +41,6 @@ abstract contract DssBatchedEmergencySpell is DssEmergencySpell, DssBatchedEmerg
     bytes32 internal immutable _ilk1;
     /// @dev The 2nd ilk to which the spell should be applicable.
     bytes32 internal immutable _ilk2;
-    /// @dev The min size for the list of ilks
-    uint256 internal constant MIN_LIST_SIZE = 2;
-    /// @dev The max size for the list of ilks
-    uint256 internal constant MAX_LIST_SIZE = 3;
 
     /// @param _ilks The list of ilks for which the spell should be applicable
     /// @dev The list size is be at least 2 and less than or equal to 3.
@@ -51,8 +52,8 @@ abstract contract DssBatchedEmergencySpell is DssEmergencySpell, DssBatchedEmerg
         // This is a workaround to Solidity's lack of support for immutable arrays, as described in
         // https://github.com/ethereum/solidity/issues/12587
         uint256 len = _ilks.length;
-        require(len >= MIN_LIST_SIZE, "DssBatchedEmergencySpell/too-few-ilks");
-        require(len <= MAX_LIST_SIZE, "DssBatchedEmergencySpell/too-many-ilks");
+        require(len >= MIN_ILKS, "DssBatchedEmergencySpell/too-few-ilks");
+        require(len <= MAX_ILKS, "DssBatchedEmergencySpell/too-many-ilks");
         _totalIlks = len;
 
         _ilk0 = _ilks[0];
@@ -101,8 +102,7 @@ abstract contract DssBatchedEmergencySpell is DssEmergencySpell, DssBatchedEmerg
     }
 
     /// @dev Returns the description prefix to compose the final description.
-    function _descriptionPrefix() internal virtual view returns (string memory);
-
+    function _descriptionPrefix() internal view virtual returns (string memory);
 
     /// @inheritdoc DssEmergencySpell
     function _emergencyActions() internal override {
@@ -133,5 +133,5 @@ abstract contract DssBatchedEmergencySpell is DssEmergencySpell, DssBatchedEmerg
     }
 
     /// @notice Returns whether the spell is done or not for the specified ilk.
-    function _done(bytes32 _ilk) internal virtual view returns (bool);
+    function _done(bytes32 _ilk) internal view virtual returns (bool);
 }

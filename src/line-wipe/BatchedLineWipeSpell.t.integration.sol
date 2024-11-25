@@ -36,7 +36,6 @@ interface VatLike {
     function file(bytes32 ilk, bytes32 what, uint256 data) external;
 }
 
-
 abstract contract BatchedLineWipeSpellTest is DssTest {
     using stdStorage for StdStorage;
 

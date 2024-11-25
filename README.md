@@ -43,8 +43,9 @@ bespoke spell in record time.
 | `SingleClipBreakerFactory` | `0x24d040a1a15211aa82665c329345312fb19a4188` |
 | `SingleDdmDisableFactory`  | `0xaa4bd9509d79998F4F93C3DD4e8C85e15cF880CB` |
 | `SingleLineWipeFactory`    | `0x5Ae82C6762bdc1B17C5D459E0c4470619C5EBDBf` |
-| `SingleLitePsmHaltFactory` | `0x4F9A00B3981df420Aa8302D889d0F175Df93036d` |
 | `SingleOsmStopFactory`     | `0x8C49d9909A6c3B83E4Fb79bF6Ac99Ed75F121b2e` |
+
+<!--  | `SingleLitePsmHaltFactory` | `0x4F9A00B3981df420Aa8302D889d0F175Df93036d` | -->
 
 ### `SingleClipBreakerSpell`
 
@@ -89,6 +90,7 @@ bespoke spell in record time.
 | WSTETH\-A           | `0x8fC27905FAC08D737B719382ff02CaF59D5dbA1B` |
 | WSTETH\-B           | `0xE57899652a5eC3564747A9324Cca8E16aC008BfD` |
 
+<!--
 ### `SingleLitePsmHaltSpell`
 
 | Ilk                | Flow | Address                                      |
@@ -96,6 +98,7 @@ bespoke spell in record time.
 | LITE\-PSM\-USDC\-A | BOTH | `0x37236771DAB68263e98534671b56534B7EC069b9` |
 | LITE\-PSM\-USDC\-A | BUY  | `0x507399CBE10BF6Fd2C7895391cc9fc0Cb89eE7ca` |
 | LITE\-PSM\-USDC\-A | SELL | `0x54190A5e59720994AC57a76c878bF01bEe68C41D` |
+-->
 
 ### `SingleOsmStopSpell`
 

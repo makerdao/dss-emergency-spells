@@ -36,6 +36,32 @@ bespoke spell in record time.
 
 ## Deployments
 
+### Standalone Spells
+
+#### `SplitterStopSpell`
+
+```
+0x04576C3B9Bd1623627b5bcaaD3Ac75fA70e298df
+```
+
+#### `MultiClipBreakerSpell`
+
+```
+0x828824dBC62Fba126C76E0Abe79AE28E5393C2cb
+```
+
+#### `MultiLineWipeSpell`
+
+```
+0x4B5f856B59448304585C2AA009802A16946DDb0f
+```
+
+#### `MultiOsmStopSpell`
+
+```
+0x3021dEdB0bC677F43A23Fcd1dE91A07e5195BaE8
+```
+
 ### On-chain Emergency Spell Factories
 
 | Name                       | Address                                      |
@@ -47,7 +73,7 @@ bespoke spell in record time.
 
 <!--  | `SingleLitePsmHaltFactory` | `0x4F9A00B3981df420Aa8302D889d0F175Df93036d` | -->
 
-### `SingleClipBreakerSpell`
+#### `SingleClipBreakerSpell`
 
 | Ilk         | Address                                      |
 |-------------|----------------------------------------------|
@@ -61,7 +87,7 @@ bespoke spell in record time.
 | WSTETH\-A   | `0xf817ef1992a80A00A44A219CDEf9f6CaB8f1c2Dd` |
 | WSTETH\-B   | `0x008Aed912C7Ba277B3A2758BB6aa29bb276738C3` |
 
-### `SingleDdmDisableSpell`
+#### `SingleDdmDisableSpell`
 
 | Ilk                           | Address                                      |
 |-------------------------------|----------------------------------------------|
@@ -69,7 +95,7 @@ bespoke spell in record time.
 | DIRECT\-SPARK\-MORPHO\-DAI    | `0xDAb9Cb1f33B30d70051a953290caC87ae6991BAf` |
 | DIRECT\-SPK\-AAVE\-LIDO\-USDS | `0xf6431659c996a4945b43BfF28D7c078C64695436` |
 
-### `SingleLineWipeSpell`
+#### `SingleLineWipeSpell`
 
 | Ilk                 | Address                                      |
 |---------------------|----------------------------------------------|
@@ -91,7 +117,7 @@ bespoke spell in record time.
 | WSTETH\-B           | `0xE57899652a5eC3564747A9324Cca8E16aC008BfD` |
 
 <!--
-### `SingleLitePsmHaltSpell`
+#### `SingleLitePsmHaltSpell`
 
 | Ilk                | Flow | Address                                      |
 |--------------------|------|----------------------------------------------|
@@ -100,7 +126,7 @@ bespoke spell in record time.
 | LITE\-PSM\-USDC\-A | SELL | `0x54190A5e59720994AC57a76c878bF01bEe68C41D` |
 -->
 
-### `SingleOsmStopSpell`
+#### `SingleOsmStopSpell`
 
 | Ilk         | Address                                      |
 |-------------|----------------------------------------------|
@@ -113,30 +139,6 @@ bespoke spell in record time.
 | WBTC\-C     | `0x3Fe5e6A7A1E66192E1DdCE28c978a779df6a08c5` |
 | WSTETH\-A   | `0x53E201A9d0846E599D30C3d1a6E37bC7A8c109Ba` |
 | WSTETH\-B   | `0x693acbbAB58055b43c515ca3362E4535584eeD6c` |
-
-### `SplitterStopSpell`
-
-```
-0x04576C3B9Bd1623627b5bcaaD3Ac75fA70e298df
-```
-
-### `MultiClipBreakerSpell`
-
-```
-0x828824dBC62Fba126C76E0Abe79AE28E5393C2cb
-```
-
-### `MultiLineWipeSpell`
-
-```
-0x4B5f856B59448304585C2AA009802A16946DDb0f
-```
-
-### `MultiOsmStopSpell`
-
-```
-0x3021dEdB0bC677F43A23Fcd1dE91A07e5195BaE8
-```
 
 ## Implemented Actions
 

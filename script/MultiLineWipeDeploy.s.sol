@@ -17,7 +17,6 @@ pragma solidity ^0.8.16;
 
 import {Script} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
-import {MCD, DssInstance} from "dss-test/MCD.sol";
 import {ScriptTools} from "dss-test/ScriptTools.sol";
 import {MultiLineWipeSpell} from "src/line-wipe/MultiLineWipeSpell.sol";
 

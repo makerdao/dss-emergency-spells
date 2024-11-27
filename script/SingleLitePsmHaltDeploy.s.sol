@@ -18,7 +18,7 @@ pragma solidity ^0.8.16;
 import {Script} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {ScriptTools} from "dss-test/ScriptTools.sol";
-import {SingleLitePsmHaltSpellFactory, Flow} from "src/lite-psm-halt/SingleLitePsmHaltSpell.sol";
+import {SingleLitePsmHaltFactory, Flow} from "src/lite-psm-halt/SingleLitePsmHaltSpell.sol";
 
 interface LitePsmLike {
     function ilk() external view returns (bytes32);
@@ -31,13 +31,13 @@ contract SingleLitePsmHaltDeployScript is Script {
     string constant NAME = "single-lite-psm-halt-deploy";
     string config;
 
-    SingleLitePsmHaltSpellFactory fab;
+    SingleLitePsmHaltFactory fab;
     address[] litePsms;
 
     function run() external {
         config = ScriptTools.loadConfig();
 
-        fab = SingleLitePsmHaltSpellFactory(config.readAddress(".factory", "FOUNDRY_FACTORY"));
+        fab = SingleLitePsmHaltFactory(config.readAddress(".factory", "FOUNDRY_FACTORY"));
         litePsms = config.readAddressArray(".litePsms", "FOUNDRY_LITE_PSMS");
 
         vm.startBroadcast();

@@ -97,13 +97,11 @@ abstract contract DssGroupedEmergencySpell is DssEmergencySpell, DssGroupedEmerg
         }
     }
 
-    /**
-     * @notice Executes the emergency actions for all ilks in the batch.
-     * @dev This is an escape hatch to prevent the spell from being blocked in case it would hit the block gas limit.
-     *      In case `end` is greater than the ilk registry length, the iteration will be automatically capped.
-     * @param start The index to start the iteration (inclusive).
-     * @param end The index to stop the iteration (inclusive).
-     */
+    /// @notice Executes the emergency actions for all ilks in the batch.
+    /// @dev This is an escape hatch to prevent the spell from being blocked in case it would hit the block gas limit.
+    ///      In case `end` is greater than the ilk registry length, the iteration will be automatically capped.
+    /// @param start The index to start the iteration (inclusive).
+    /// @param end The index to stop the iteration (inclusive).
     function emergencyActionsInBatch(uint256 start, uint256 end) external {
         end = end > ilkList.length - 1 ? ilkList.length - 1 : end;
         require(start <= end, "DssGroupedEmergencySpell/bad-iteration");

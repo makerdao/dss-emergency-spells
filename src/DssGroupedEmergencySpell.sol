@@ -17,34 +17,30 @@ pragma solidity ^0.8.16;
 
 import {DssEmergencySpell, DssEmergencySpellLike} from "./DssEmergencySpell.sol";
 
-interface DssBatchedEmergencySpellLike is DssEmergencySpellLike {
+interface DssGroupedEmergencySpellLike is DssEmergencySpellLike {
     function ilks() external view returns (bytes32[] memory);
+    function emergencyActionsInBatch(uint256 start, uint256 end) external;
 }
 
-/// @title Batched Emergency Spell
-/// @notice Defines the base implementation for batched emergency spells.
+/// @title Grouped Emergency Spell
+/// @notice Defines the base implementation for grouped emergency spells.
 /// @custom:authors [amusingaxl]
 /// @custom:reviewers []
 /// @custom:auditors []
 /// @custom:bounties []
-abstract contract DssBatchedEmergencySpell is DssEmergencySpell, DssBatchedEmergencySpellLike {
+abstract contract DssGroupedEmergencySpell is DssEmergencySpell, DssGroupedEmergencySpellLike {
     /// @dev The min size for the list of ilks
-    uint256 public constant MIN_ILKS = 2;
-    /// @dev The max size for the list of ilks
-    uint256 public constant MAX_ILKS = 3;
+    uint256 private constant MIN_ILKS = 1;
 
-    /// @dev The total number of ilks in the spell.
-    uint256 internal immutable _totalIlks;
-    /// @dev The 0th ilk to which the spell should be applicable.
-    bytes32 internal immutable _ilk0;
-    /// @dev The 1st ilk to which the spell should be applicable.
-    bytes32 internal immutable _ilk1;
-    /// @dev The 2nd ilk to which the spell should be applicable.
-    bytes32 internal immutable _ilk2;
+    /// @notice The list of ilks to which the spell is applicable.
+    /// @dev While spells should not have storage variables, we can make an exception here because this spell should not
+    ///      change its own storage, an therefore, could not overwrite the PauseProxy state through delegate call even
+    ///      if used incorrectly.
+    bytes32[] private ilkList;
 
     /// @param _ilks The list of ilks for which the spell should be applicable
     /// @dev The list size is be at least 2 and less than or equal to 3.
-    ///      The batched spell is meant to be used for ilks that are a variation of tha same collateral gem
+    ///      The grouped spell is meant to be used for ilks that are a variation of tha same collateral gem
     ///      (i.e.: ETH-A, ETH-B, ETH-C)
     ///      There has never been a case where MCD onboarded 4 or more ilks for the same collateral gem.
     ///      For cases where there is only one ilk for the same collateral gem, use the single-ilk version.
@@ -52,33 +48,23 @@ abstract contract DssBatchedEmergencySpell is DssEmergencySpell, DssBatchedEmerg
         // This is a workaround to Solidity's lack of support for immutable arrays, as described in
         // https://github.com/ethereum/solidity/issues/12587
         uint256 len = _ilks.length;
-        require(len >= MIN_ILKS, "DssBatchedEmergencySpell/too-few-ilks");
-        require(len <= MAX_ILKS, "DssBatchedEmergencySpell/too-many-ilks");
-        _totalIlks = len;
+        require(len >= MIN_ILKS, "DssGroupedEmergencySpell/too-few-ilks");
 
-        _ilk0 = _ilks[0];
-        _ilk1 = _ilks[1];
-        // Only ilk2 is not guaranteed to exist.
-        _ilk2 = len > 2 ? _ilks[2] : bytes32(0);
+        ilkList = _ilks;
     }
 
     /// @notice Returns the list of ilks to which the spell is applicable.
-    /// @return _ilks The list of ilks
-    function ilks() public view returns (bytes32[] memory _ilks) {
-        _ilks = new bytes32[](_totalIlks);
-        _ilks[0] = _ilk0;
-        _ilks[1] = _ilk1;
-        if (_totalIlks > 2) {
-            _ilks[2] = _ilk2;
-        }
+    function ilks() external view returns (bytes32[] memory) {
+        return ilkList;
     }
 
     /// @notice Returns the spell description.
     function description() external view returns (string memory) {
         // Join the list of ilks into a comma-separated string
-        string memory buf = string.concat(_bytes32ToString(_ilk0), ", ", _bytes32ToString(_ilk1));
-        if (_totalIlks > 2) {
-            buf = string.concat(buf, ", ", _bytes32ToString(_ilk2));
+        string memory buf = _bytes32ToString(ilkList[0]);
+        // Start from one because the first item was already added.
+        for (uint256 i = 1; i < ilkList.length; i++) {
+            buf = string.concat(buf, ", ", _bytes32ToString(ilkList[i]));
         }
 
         return string.concat(_descriptionPrefix(), " ", buf);
@@ -106,10 +92,24 @@ abstract contract DssBatchedEmergencySpell is DssEmergencySpell, DssBatchedEmerg
 
     /// @inheritdoc DssEmergencySpell
     function _emergencyActions() internal override {
-        _emergencyActions(_ilk0);
-        _emergencyActions(_ilk1);
-        if (_totalIlks > 2) {
-            _emergencyActions(_ilk2);
+        for (uint256 i = 0; i < ilkList.length; i++) {
+            _emergencyActions(ilkList[i]);
+        }
+    }
+
+    /**
+     * @notice Executes the emergency actions for all ilks in the batch.
+     * @dev This is an escape hatch to prevent the spell from being blocked in case it would hit the block gas limit.
+     *      In case `end` is greater than the ilk registry length, the iteration will be automatically capped.
+     * @param start The index to start the iteration (inclusive).
+     * @param end The index to stop the iteration (inclusive).
+     */
+    function emergencyActionsInBatch(uint256 start, uint256 end) external {
+        end = end > ilkList.length - 1 ? ilkList.length - 1 : end;
+        require(start <= end, "DssGroupedEmergencySpell/bad-iteration");
+
+        for (uint256 i = start; i <= end; i++) {
+            _emergencyActions(ilkList[i]);
         }
     }
 
@@ -120,9 +120,9 @@ abstract contract DssBatchedEmergencySpell is DssEmergencySpell, DssBatchedEmerg
     /// @notice Returns whether the spell is done for all ilks or not.
     /// @return res Whether the spells is done or not.
     function done() external view returns (bool res) {
-        res = _done(_ilk0) && _done(_ilk1);
-        if (_totalIlks > 2) {
-            res = res && _done(_ilk2);
+        res = true;
+        for (uint256 i = 0; i < ilkList.length; i++) {
+            res = res && _done(ilkList[i]);
         }
     }
 

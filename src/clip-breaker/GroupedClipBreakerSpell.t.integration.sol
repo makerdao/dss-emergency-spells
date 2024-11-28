@@ -18,7 +18,7 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {BatchedClipBreakerSpell, BatchedClipBreakerFactory} from "./BatchedClipBreakerSpell.sol";
+import {GroupedClipBreakerSpell, GroupedClipBreakerFactory} from "./GroupedClipBreakerSpell.sol";
 
 interface IlkRegistryLike {
     function xlip(bytes32 ilk) external view returns (address);
@@ -34,7 +34,7 @@ interface ClipLike {
     function deny(address who) external;
 }
 
-abstract contract BatchedClipBreakerSpellTest is DssTest {
+abstract contract GroupedClipBreakerSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
@@ -47,7 +47,7 @@ abstract contract BatchedClipBreakerSpellTest is DssTest {
     ClipLike clipA;
     ClipLike clipB;
     ClipLike clipC;
-    BatchedClipBreakerFactory factory;
+    GroupedClipBreakerFactory factory;
     DssEmergencySpellLike spell;
 
     function setUp() public {
@@ -60,7 +60,7 @@ abstract contract BatchedClipBreakerSpellTest is DssTest {
         ilkReg = IlkRegistryLike(dss.chainlog.getAddress("ILK_REGISTRY"));
         clipperMom = ClipperMomLike(dss.chainlog.getAddress("CLIPPER_MOM"));
         _setUpSub();
-        factory = new BatchedClipBreakerFactory();
+        factory = new GroupedClipBreakerFactory();
         spell = DssEmergencySpellLike(factory.deploy(ilks));
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
@@ -152,7 +152,7 @@ abstract contract BatchedClipBreakerSpellTest is DssTest {
     event SetBreaker(bytes32 indexed ilk, address indexed clip);
 }
 
-contract EthBatchedClipBreakerSpellTest is BatchedClipBreakerSpellTest {
+contract EthGroupedClipBreakerSpellTest is GroupedClipBreakerSpellTest {
     function _setUpSub() internal override {
         clipA = ClipLike(ilkReg.xlip("ETH-A"));
         clipB = ClipLike(ilkReg.xlip("ETH-B"));
@@ -164,11 +164,11 @@ contract EthBatchedClipBreakerSpellTest is BatchedClipBreakerSpellTest {
     }
 
     function testDescription() public view {
-        assertEq(spell.description(), "Emergency Spell | Batched Clip Breaker: ETH-A, ETH-B, ETH-C");
+        assertEq(spell.description(), "Emergency Spell | Grouped Clip Breaker: ETH-A, ETH-B, ETH-C");
     }
 }
 
-contract WstethBatchedClipBreakerSpellTest is BatchedClipBreakerSpellTest {
+contract WstethGroupedClipBreakerSpellTest is GroupedClipBreakerSpellTest {
     function _setUpSub() internal override {
         clipA = ClipLike(ilkReg.xlip("WSTETH-A"));
         clipB = ClipLike(ilkReg.xlip("WSTETH-B"));
@@ -178,11 +178,11 @@ contract WstethBatchedClipBreakerSpellTest is BatchedClipBreakerSpellTest {
     }
 
     function testDescription() public view {
-        assertEq(spell.description(), "Emergency Spell | Batched Clip Breaker: WSTETH-A, WSTETH-B");
+        assertEq(spell.description(), "Emergency Spell | Grouped Clip Breaker: WSTETH-A, WSTETH-B");
     }
 }
 
-contract WbtcBatchedClipBreakerSpellTest is BatchedClipBreakerSpellTest {
+contract WbtcGroupedClipBreakerSpellTest is GroupedClipBreakerSpellTest {
     function _setUpSub() internal override {
         clipA = ClipLike(ilkReg.xlip("WBTC-A"));
         clipB = ClipLike(ilkReg.xlip("WBTC-B"));
@@ -194,6 +194,6 @@ contract WbtcBatchedClipBreakerSpellTest is BatchedClipBreakerSpellTest {
     }
 
     function testDescription() public view {
-        assertEq(spell.description(), "Emergency Spell | Batched Clip Breaker: WBTC-A, WBTC-B, WBTC-C");
+        assertEq(spell.description(), "Emergency Spell | Grouped Clip Breaker: WBTC-A, WBTC-B, WBTC-C");
     }
 }

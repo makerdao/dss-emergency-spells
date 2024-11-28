@@ -17,37 +17,39 @@ pragma solidity ^0.8.16;
 
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD, GodMode} from "dss-test/DssTest.sol";
-import {DssBatchedEmergencySpell} from "./DssBatchedEmergencySpell.sol";
+import {DssGroupedEmergencySpell} from "./DssGroupedEmergencySpell.sol";
 
-contract DssBatchedEmergencySpellImpl is DssBatchedEmergencySpell {
-    mapping(bytes32 => bool) internal _isDone;
+contract DssGroupedEmergencySpellImpl is DssGroupedEmergencySpell {
+    mapping(bytes32 => bool) public isDone;
 
     function setDone(bytes32 ilk, bool val) external {
-        _isDone[ilk] = val;
+        isDone[ilk] = val;
     }
 
     function _descriptionPrefix() internal pure override returns (string memory) {
-        return "Batched Emergency Spell:";
+        return "Grouped Emergency Spell:";
     }
 
     event EmergencyAction(bytes32 indexed ilk);
 
-    constructor(bytes32[] memory _ilks) DssBatchedEmergencySpell(_ilks) {}
+    constructor(bytes32[] memory _ilks) DssGroupedEmergencySpell(_ilks) {}
 
     function _emergencyActions(bytes32 ilk) internal override {
         emit EmergencyAction(ilk);
+        isDone[ilk] = true;
     }
 
     function _done(bytes32 ilk) internal view override returns (bool) {
-        return _isDone[ilk];
+        return isDone[ilk];
     }
 }
 
-contract DssBatchedEmergencySpellTest is DssTest {
+contract DssGroupedEmergencySpellTest is DssTest {
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
     DssInstance dss;
-    DssBatchedEmergencySpellImpl spell2;
-    DssBatchedEmergencySpellImpl spell3;
+    DssGroupedEmergencySpellImpl spell2;
+    DssGroupedEmergencySpellImpl spell3;
+    DssGroupedEmergencySpellImpl spellN;
     address pause;
 
     function setUp() public {
@@ -60,17 +62,27 @@ contract DssBatchedEmergencySpellTest is DssTest {
         bytes32[] memory ilks2 = new bytes32[](2);
         ilks2[0] = "WSTETH-A";
         ilks2[1] = "WSTETH-B";
-        spell2 = new DssBatchedEmergencySpellImpl(ilks2);
+        spell2 = new DssGroupedEmergencySpellImpl(ilks2);
         bytes32[] memory ilks3 = new bytes32[](3);
         ilks3[0] = "ETH-A";
         ilks3[1] = "ETH-B";
         ilks3[2] = "ETH-C";
-        spell3 = new DssBatchedEmergencySpellImpl(ilks3);
+        spell3 = new DssGroupedEmergencySpellImpl(ilks3);
+        bytes32[] memory ilksN = new bytes32[](8);
+        ilksN[0] = "ETH-A";
+        ilksN[1] = "ETH-B";
+        ilksN[2] = "ETH-C";
+        ilksN[3] = "WSTETH-A";
+        ilksN[4] = "WSTETH-B";
+        ilksN[5] = "WBTC-A";
+        ilksN[6] = "WBTC-B";
+        ilksN[7] = "WBTC-C";
+        spellN = new DssGroupedEmergencySpellImpl(ilksN);
     }
 
     function testDescription() public view {
-        assertEq(spell2.description(), "Batched Emergency Spell: WSTETH-A, WSTETH-B");
-        assertEq(spell3.description(), "Batched Emergency Spell: ETH-A, ETH-B, ETH-C");
+        assertEq(spell2.description(), "Grouped Emergency Spell: WSTETH-A, WSTETH-B");
+        assertEq(spell3.description(), "Grouped Emergency Spell: ETH-A, ETH-B, ETH-C");
     }
 
     function testEmergencyActions() public {
@@ -87,6 +99,43 @@ contract DssBatchedEmergencySpellTest is DssTest {
         vm.expectEmit(true, true, true, true);
         emit EmergencyAction("ETH-C");
         spell3.schedule();
+
+        vm.expectEmit(true, true, true, true);
+        emit EmergencyAction("ETH-A");
+        vm.expectEmit(true, true, true, true);
+        emit EmergencyAction("ETH-B");
+        vm.expectEmit(true, true, true, true);
+        emit EmergencyAction("ETH-C");
+        vm.expectEmit(true, true, true, true);
+        emit EmergencyAction("WSTETH-A");
+        vm.expectEmit(true, true, true, true);
+        emit EmergencyAction("WSTETH-B");
+        vm.expectEmit(true, true, true, true);
+        emit EmergencyAction("WBTC-A");
+        vm.expectEmit(true, true, true, true);
+        emit EmergencyAction("WBTC-B");
+        vm.expectEmit(true, true, true, true);
+        emit EmergencyAction("WBTC-C");
+        spellN.schedule();
+    }
+
+    function testEmergencyActionsInBatches_Fuzz(uint256 batchSize) public {
+        uint256 count = spellN.ilks().length;
+        batchSize = bound(batchSize, 1, count);
+        uint256 start = 0;
+        // End is inclusive, so we need to subtract 1
+        uint256 end = start + batchSize - 1;
+
+        assertFalse(spellN.done(), "spellN unexpectedly done");
+
+        while (start < count) {
+            spellN.emergencyActionsInBatch(start, end);
+
+            start += batchSize;
+            end += batchSize;
+        }
+
+        assertTrue(spellN.done(), "spellN not done");
     }
 
     function testDone() public {

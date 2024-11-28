@@ -18,7 +18,7 @@ pragma solidity ^0.8.16;
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {DssEmergencySpellLike} from "../DssEmergencySpell.sol";
-import {BatchedLineWipeSpell, BatchedLineWipeFactory} from "./BatchedLineWipeSpell.sol";
+import {GroupedLineWipeSpell, GroupedLineWipeFactory} from "./GroupedLineWipeSpell.sol";
 
 interface AutoLineLike {
     function ilks(bytes32 ilk)
@@ -36,7 +36,7 @@ interface VatLike {
     function file(bytes32 ilk, bytes32 what, uint256 data) external;
 }
 
-abstract contract BatchedLineWipeSpellTest is DssTest {
+abstract contract GroupedLineWipeSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
@@ -47,7 +47,7 @@ abstract contract BatchedLineWipeSpellTest is DssTest {
     LineMomLike lineMom;
     AutoLineLike autoLine;
     bytes32[] ilks;
-    BatchedLineWipeFactory factory;
+    GroupedLineWipeFactory factory;
     DssEmergencySpellLike spell;
 
     function setUp() public {
@@ -61,7 +61,7 @@ abstract contract BatchedLineWipeSpellTest is DssTest {
         lineMom = LineMomLike(dss.chainlog.getAddress("LINE_MOM"));
         autoLine = AutoLineLike(dss.chainlog.getAddress("MCD_IAM_AUTO_LINE"));
         _setUpSub();
-        factory = new BatchedLineWipeFactory();
+        factory = new GroupedLineWipeFactory();
         spell = DssEmergencySpellLike(factory.deploy(ilks));
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
@@ -186,7 +186,7 @@ abstract contract BatchedLineWipeSpellTest is DssTest {
     event Wipe(bytes32 indexed ilk);
 }
 
-contract EthBatchedLineWipeSpellTest is BatchedLineWipeSpellTest {
+contract EthGroupedLineWipeSpellTest is GroupedLineWipeSpellTest {
     function _setUpSub() internal override {
         ilks = new bytes32[](3);
         ilks[0] = "ETH-A";
@@ -195,11 +195,11 @@ contract EthBatchedLineWipeSpellTest is BatchedLineWipeSpellTest {
     }
 
     function testDescription() public view {
-        assertEq(spell.description(), "Emergency Spell | Batched Line Wipe: ETH-A, ETH-B, ETH-C");
+        assertEq(spell.description(), "Emergency Spell | Grouped Line Wipe: ETH-A, ETH-B, ETH-C");
     }
 }
 
-contract WstethBatchedLineWipeSpellTest is BatchedLineWipeSpellTest {
+contract WstethGroupedLineWipeSpellTest is GroupedLineWipeSpellTest {
     function _setUpSub() internal override {
         ilks = new bytes32[](2);
         ilks[0] = "WSTETH-A";
@@ -207,11 +207,11 @@ contract WstethBatchedLineWipeSpellTest is BatchedLineWipeSpellTest {
     }
 
     function testDescription() public view {
-        assertEq(spell.description(), "Emergency Spell | Batched Line Wipe: WSTETH-A, WSTETH-B");
+        assertEq(spell.description(), "Emergency Spell | Grouped Line Wipe: WSTETH-A, WSTETH-B");
     }
 }
 
-contract WbtcBatchedLineWipeSpellTest is BatchedLineWipeSpellTest {
+contract WbtcGroupedLineWipeSpellTest is GroupedLineWipeSpellTest {
     function _setUpSub() internal override {
         ilks = new bytes32[](3);
         ilks[0] = "WBTC-A";
@@ -227,6 +227,6 @@ contract WbtcBatchedLineWipeSpellTest is BatchedLineWipeSpellTest {
     }
 
     function testDescription() public view {
-        assertEq(spell.description(), "Emergency Spell | Batched Line Wipe: WBTC-A, WBTC-B, WBTC-C");
+        assertEq(spell.description(), "Emergency Spell | Grouped Line Wipe: WBTC-A, WBTC-B, WBTC-C");
     }
 }

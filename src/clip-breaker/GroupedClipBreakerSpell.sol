@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity ^0.8.16;
 
-import {DssBatchedEmergencySpell} from "../DssBatchedEmergencySpell.sol";
+import {DssGroupedEmergencySpell} from "../DssGroupedEmergencySpell.sol";
 
 interface ClipperMomLike {
     function setBreaker(address clip, uint256 level, uint256 delay) external;
@@ -30,13 +30,13 @@ interface IlkRegistryLike {
     function xlip(bytes32 ilk) external view returns (address);
 }
 
-/// @title Emergency Spell: Batched Clip Breaker
+/// @title Emergency Spell: Grouped Clip Breaker
 /// @notice Prevents further collateral auctions to be held in the respective Clip contracts.
 /// @custom:authors [amusingaxl]
 /// @custom:reviewers []
 /// @custom:auditors []
 /// @custom:bounties []
-contract BatchedClipBreakerSpell is DssBatchedEmergencySpell {
+contract GroupedClipBreakerSpell is DssGroupedEmergencySpell {
     /// @notice The ClipperMom from chainlog.
     ClipperMomLike public immutable clipperMom = ClipperMomLike(_log.getAddress("CLIPPER_MOM"));
     /// @notice The IlkRegistry from chainlog.
@@ -54,19 +54,17 @@ contract BatchedClipBreakerSpell is DssBatchedEmergencySpell {
 
     /// @param _ilks The list of ilks for which the spell should be applicable
     /// @dev The list size is be at least 2 and less than or equal to 3.
-    ///      The batched spell is meant to be used for ilks that are a variation of tha same collateral gem
+    ///      The grouped spell is meant to be used for ilks that are a variation of tha same collateral gem
     ///      (i.e.: ETH-A, ETH-B, ETH-C)
-    ///      There has never been a case where MCD onboarded 4 or more ilks for the same collateral gem.
-    ///      For cases where there is only one ilk for the same collateral gem, use the single-ilk version.
-    constructor(bytes32[] memory _ilks) DssBatchedEmergencySpell(_ilks) {}
+    constructor(bytes32[] memory _ilks) DssGroupedEmergencySpell(_ilks) {}
 
-    /// @inheritdoc DssBatchedEmergencySpell
+    /// @inheritdoc DssGroupedEmergencySpell
     function _descriptionPrefix() internal pure override returns (string memory) {
-        return "Emergency Spell | Batched Clip Breaker:";
+        return "Emergency Spell | Grouped Clip Breaker:";
     }
 
     /// @notice Sets the breaker for the related Clip contract.
-    /// @inheritdoc DssBatchedEmergencySpell
+    /// @inheritdoc DssGroupedEmergencySpell
     function _emergencyActions(bytes32 _ilk) internal override {
         address clip = ilkReg.xlip(_ilk);
         clipperMom.setBreaker(clip, BREAKER_LEVEL, BREAKER_DELAY);
@@ -99,22 +97,22 @@ contract BatchedClipBreakerSpell is DssBatchedEmergencySpell {
     }
 }
 
-/// @title Emergency Spell Factory: Batched Clip Breaker
-/// @notice On-chain factory to deploy Batched Clip Breaker emergency spells.
+/// @title Emergency Spell Factory: Grouped Clip Breaker
+/// @notice On-chain factory to deploy Grouped Clip Breaker emergency spells.
 /// @custom:authors [amusingaxl]
 /// @custom:reviewers []
 /// @custom:auditors []
 /// @custom:bounties []
-contract BatchedClipBreakerFactory {
-    /// @notice A new BatchedClipBreakerSpell has been deployed.
+contract GroupedClipBreakerFactory {
+    /// @notice A new GroupedClipBreakerSpell has been deployed.
     /// @param ilks The list of ilks for which the spell is applicable.
     /// @param spell The deployed spell address.
     event Deploy(bytes32[] indexed ilks, address spell);
 
-    /// @notice Deploys a BatchedClipBreakerSpell contract.
+    /// @notice Deploys a GroupedClipBreakerSpell contract.
     /// @param ilks The list of ilks for which the spell is applicable.
     function deploy(bytes32[] memory ilks) external returns (address spell) {
-        spell = address(new BatchedClipBreakerSpell(ilks));
+        spell = address(new GroupedClipBreakerSpell(ilks));
         emit Deploy(ilks, spell);
     }
 }

@@ -36,18 +36,120 @@ bespoke spell in record time.
 
 ## Deployments
 
-TBD.
+### Standalone Spells
+
+<!--
+#### `SplitterStopSpell`
+
+```
+0x04576C3B9Bd1623627b5bcaaD3Ac75fA70e298df
+```
+-->
+
+#### `MultiClipBreakerSpell`
+
+```
+0x828824dBC62Fba126C76E0Abe79AE28E5393C2cb
+```
+
+#### `MultiLineWipeSpell`
+
+```
+0x4B5f856B59448304585C2AA009802A16946DDb0f
+```
+
+#### `MultiOsmStopSpell`
+
+```
+0x3021dEdB0bC677F43A23Fcd1dE91A07e5195BaE8
+```
+
+### On-chain Emergency Spell Factories
+
+| Name                       | Address                                      |
+| -------------------------- | -------------------------------------------- |
+| `SingleClipBreakerFactory` | `0xd7321d0919573a33f9147fd2579a48f60237564a` |
+| `SingleDdmDisableFactory`  | `0x8BA0f6C4009Ea915706e1bCfB1d879E34587dC69` |
+| `SingleLineWipeFactory`    | `0xA649730fA92695096b7C49DBae682995F8906684` |
+| `SingleOsmStopFactory`     | `0x83211c74131bA2B3de7538f588f1c2f309e81eF0` |
+
+#### `SingleClipBreakerSpell`
+
+| Ilk         | Address                                      |
+| ----------- | -------------------------------------------- |
+| `ETH-A`     | `0xa1122011E26d160b263295476e294A17560213D1` |
+| `ETH-B`     | `0x1efe035022c63ACB53f3662bcb18683F522d2811` |
+| `ETH-C`     | `0xDef93051a647C5c3C5ce0B32C32B4394b4a55a85` |
+| `LSE-MKR-A` | `0x9CF8Bd21814B57b9Ca5B368efb00A551682b7823` |
+| `WBTC-A`    | `0x43Aa7ED6BA07274104f5Ea0e08E6C236B02Bc636` |
+| `WBTC-B`    | `0x0ffE29C34da1C4760a1409DE19045a5ca41a7912` |
+| `WBTC-C`    | `0x9d5F59D4a599888E77899Afa8cc4bEd2334557d3` |
+| `WSTETH-A`  | `0x4e95dBC199c52F3Fb6Cfff1514099fF6A3942E56` |
+| `WSTETH-B`  | `0x052eDfA59F7eA13f27B0E886a0f89e88BA7b7Ea3` |
+
+#### `SingleDdmDisableSpell`
+
+| Ilk                         | Address                                      |
+| --------------------------- | -------------------------------------------- |
+| `DIRECT-SPARK-DAI`          | `0xf10d37FC47e966508A62d4874dC69c7Ed62fd11B` |
+| `DIRECT-SPARK-MORPHO-DAI`   | `0xD6513162b30D0BEC7e9E81c4F2Ce2C07d7D2a372` |
+| `DIRECT-SPK-AAVE-LIDO-USDS` | `0x36cbC441C671f75BB5aE1150b12106D1D921d53c` |
+
+#### `SingleLineWipeSpell`
+
+| Ilk                 | Address                                      |
+| ------------------- | -------------------------------------------- |
+| `ALLOCATOR-SPARK-A` | `0xFaF2Cd3a76EBEFB257BE0ea7dF5D222acDDA6734` |
+| `ETH-A`             | `0x46BAeb8fb770f9bcfb5cF9A696F80fcEe6D0dcfE` |
+| `ETH-B`             | `0x9E8516f7Ba14429917343c7Bc4c9d7378d298DDF` |
+| `ETH-C`             | `0x0b6D27cf223D6e9ED2e55D5ADcF1909bbcEcFA32` |
+| `LSE-MKR-A`         | `0xeeb0D6bdBa6b74E1813C8e8AAD3c927e5d86F87D` |
+| `RWA001-A`          | `0xE4bcBe6a8A4564c9C7ECED4F5a827cc106352602` |
+| `RWA002-A`          | `0x944F013edF4886bD0871391EFFc98911B8F0821f` |
+| `RWA009-A`          | `0x46cbB3f96cC07205Dc8EE495615f144E288c8815` |
+| `RWA012-A`          | `0xd9314ff8f9DCB2e7C1434155800B54d02Ae7f6f5` |
+| `RWA013-A`          | `0x4ed518908dF1BD4b1C8a48602e4FADf2Fd248D9f` |
+| `RWA015-A`          | `0x9A0A0700253cBb7372E3A6659fb8Be11866F32FA` |
+| `WBTC-A`            | `0xd960050a502A27bBF33228E033782CB35B72e74D` |
+| `WBTC-B`            | `0x47f20D5e95D8477a9dF2D483414Bce28b87B10Eb` |
+| `WBTC-C`            | `0x1BC7cA708d882a82bdB1ade4838BeDB90144127c` |
+| `WSTETH-A`          | `0x6A7710534E840a64ba709775ab9F23a6894bECa4` |
+| `WSTETH-B`          | `0x79D7e31520FCD7bB5bf25fa13b2028cB5a32699D` |
+
+<!--
+#### `SingleLitePsmHaltSpell`
+
+| Ilk                | Flow | Address                                      |
+|--------------------|------|----------------------------------------------|
+| ``LITE-PSM-USDC-A` | BOTH | `TODO` |
+| ``LITE-PSM-USDC-A` | BUY  | `TODO` |
+| ``LITE-PSM-USDC-A` | SELL | `TODO` |
+-->
+
+#### `SingleOsmStopSpell`
+
+| Ilk         | Address                                      |
+| ----------- | -------------------------------------------- |
+| `ETH-A`     | `0x3a03F35ba1F5e015a288feD50cEB5342d4989E85` |
+| `ETH-B`     | `0xb5f5F6CdCddD391402a2E71c2380d2f64372c49B` |
+| `ETH-C`     | `0x690a6a9236E80Bd331e635Ad696be45C89a418ec` |
+| `LSE-MKR-A` | `0x9a4039d5abeDa765A3B295c51Db511861428109a` |
+| `WBTC-A`    | `0xa1295912d6b535e30Df9aE4077256d0A989F4863` |
+| `WBTC-B`    | `0x3eC627D7A4F5b88cD13E67d55885B0Bf09B4a3b0` |
+| `WBTC-C`    | `0x3d045508697681F021980B41759CDB8aB5C5AFb8` |
+| `WSTETH-A`  | `0xC8F4544334B9ACBcd6DDE5c2283d53b48ad762BC` |
+| `WSTETH-B`  | `0xD1ce9F89c7f1e6Ec698bc840676efbFfC1373daa` |
 
 ## Implemented Actions
 
-| Description        | Single ilk         | Multi ilk          |
-| :----------        | :--------:         | :-------:          |
+| Description        |     Single ilk     |     Multi ilk      |
+| :----------------- | :----------------: | :----------------: |
 | Wipe `line`        | :white_check_mark: | :white_check_mark: |
 | Set `Clip` breaker | :white_check_mark: | :white_check_mark: |
-| Disable `DDM`      | :white_check_mark: | :x:                |
+| Disable `DDM`      | :white_check_mark: |        :x:         |
 | Stop `OSM`         | :white_check_mark: | :white_check_mark: |
-| Halt `PSM`         | :white_check_mark: | :x:                |
-| Stop `Splitter`    | :x:                | :white_check_mark: |
+| Halt `PSM`         | :white_check_mark: |        :x:         |
+| Stop `Splitter`    |        :x:         | :white_check_mark: |
 
 ### Wipe `line`
 
@@ -135,6 +237,7 @@ set to `true` when the spell is cast. This ensures a spell cannot be cast twice.
 
 An emergency spell is not meant to be cast, but it can be scheduled multiple times. So instead of having `done` as a
 storage variable, it becomes a getter function that will return:
+
 - `false`: if the emergency spell can be scheduled in the current state, given it is lifted to the hat.
 - `true`: if the desired effects of the spell can be verified or if there is anything that would prevent the spell from
   being scheduled (i.e.: bad system config)

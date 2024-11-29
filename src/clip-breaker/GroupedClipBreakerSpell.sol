@@ -53,8 +53,8 @@ contract GroupedClipBreakerSpell is DssGroupedEmergencySpell {
     event SetBreaker(bytes32 indexed ilk, address indexed clip);
 
     /// @param _ilks The list of ilks for which the spell should be applicable
-    /// @dev The list size is be at least 2 and less than or equal to 3.
-    ///      The grouped spell is meant to be used for ilks that are a variation of tha same collateral gem
+    /// @dev The list size is be at least 1.
+    ///      The grouped spell is meant to be used for ilks that are a variation of the same collateral gem
     ///      (i.e.: ETH-A, ETH-B, ETH-C)
     constructor(bytes32[] memory _ilks) DssGroupedEmergencySpell(_ilks) {}
 

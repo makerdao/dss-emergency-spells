@@ -49,12 +49,12 @@ contract GroupedLineWipeSpell is DssGroupedEmergencySpell {
     VatLike public immutable vat = VatLike(_log.getAddress("MCD_VAT"));
 
     /// @notice Emitted when the spell is scheduled.
-    /// @param ilk The ilk for which the Clip breaker was set.
+    /// @param ilk The ilk for which the Line wipe was set.
     event Wipe(bytes32 indexed ilk);
 
     /// @param _ilks The list of ilks for which the spell should be applicable
-    /// @dev The list size is be at least 2 and less than or equal to 3.
-    ///      The grouped spell is meant to be used for ilks that are a variation of tha same collateral gem
+    /// @dev The list size is be at least 1.
+    ///      The grouped spell is meant to be used for ilks that are a variation of the same collateral gem
     ///      (i.e.: ETH-A, ETH-B, ETH-C)
     constructor(bytes32[] memory _ilks) DssGroupedEmergencySpell(_ilks) {}
 

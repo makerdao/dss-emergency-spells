@@ -15,8 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 pragma solidity ^0.8.16;
 
-import {stdStorage, StdStorage} from "forge-std/Test.sol";
-import {DssTest, DssInstance, MCD, GodMode} from "dss-test/DssTest.sol";
+import {DssTest, DssInstance, MCD} from "dss-test/DssTest.sol";
 import {DssGroupedEmergencySpell} from "./DssGroupedEmergencySpell.sol";
 
 contract DssGroupedEmergencySpellImpl is DssGroupedEmergencySpell {
@@ -140,7 +139,7 @@ contract DssGroupedEmergencySpellTest is DssTest {
 
     function testDone() public {
         assertFalse(spell2.done(), "spell2 unexpectedly done");
-        assertFalse(spell3.done(), "spell2 unexpectedly done");
+        assertFalse(spell3.done(), "spell3 unexpectedly done");
 
         {
             // Tweak spell2 so it is considered done for WSTETH-A...
@@ -164,7 +163,7 @@ contract DssGroupedEmergencySpellTest is DssTest {
             assertFalse(spell3.done(), "spell3 unexpectedly done");
             // Then set done for ETH-C...
             spell3.setDone("ETH-C", true);
-            // ... new the spell must finally return true
+            // ... now the spell must finally return true
             assertTrue(spell3.done(), "spell3 not done");
         }
     }

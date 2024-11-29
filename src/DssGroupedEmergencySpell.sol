@@ -34,13 +34,13 @@ abstract contract DssGroupedEmergencySpell is DssEmergencySpell, DssGroupedEmerg
 
     /// @notice The list of ilks to which the spell is applicable.
     /// @dev While spells should not have storage variables, we can make an exception here because this spell should not
-    ///      change its own storage, an therefore, could not overwrite the PauseProxy state through delegate call even
+    ///      change its own storage, and therefore, could not overwrite the PauseProxy state through delegate call even
     ///      if used incorrectly.
     bytes32[] private ilkList;
 
     /// @param _ilks The list of ilks for which the spell should be applicable
-    /// @dev The list size is be at least 2 and less than or equal to 3.
-    ///      The grouped spell is meant to be used for ilks that are a variation of tha same collateral gem
+    /// @dev The list size must be at least 1.
+    ///      The grouped spell is meant to be used for ilks that are a variation of the same collateral gem
     ///      (i.e.: ETH-A, ETH-B, ETH-C)
     ///      There has never been a case where MCD onboarded 4 or more ilks for the same collateral gem.
     ///      For cases where there is only one ilk for the same collateral gem, use the single-ilk version.
@@ -99,7 +99,7 @@ abstract contract DssGroupedEmergencySpell is DssEmergencySpell, DssGroupedEmerg
 
     /// @notice Executes the emergency actions for all ilks in the batch.
     /// @dev This is an escape hatch to prevent the spell from being blocked in case it would hit the block gas limit.
-    ///      In case `end` is greater than the ilk registry length, the iteration will be automatically capped.
+    ///      In case `end` is greater than the ilk list length, the iteration will be automatically capped.
     /// @param start The index to start the iteration (inclusive).
     /// @param end The index to stop the iteration (inclusive).
     function emergencyActionsInBatch(uint256 start, uint256 end) external {
@@ -117,12 +117,14 @@ abstract contract DssGroupedEmergencySpell is DssEmergencySpell, DssGroupedEmerg
 
     /// @notice Returns whether the spell is done for all ilks or not.
     /// @return res Whether the spells is done or not.
-    function done() external view returns (bool res) {
-        res = true;
-        for (uint256 i = 0; i < ilkList.length; i++) {
-            res = res && _done(ilkList[i]);
+function done() external view returns (bool res) {
+    for (uint256 i = 0; i < ilkList.length; i++) {
+        if (!_done(ilkList[i])) {
+            return false;
         }
     }
+    return true;
+}
 
     /// @notice Returns whether the spell is done or not for the specified ilk.
     function _done(bytes32 _ilk) internal view virtual returns (bool);

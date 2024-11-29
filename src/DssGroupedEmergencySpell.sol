@@ -117,14 +117,14 @@ abstract contract DssGroupedEmergencySpell is DssEmergencySpell, DssGroupedEmerg
 
     /// @notice Returns whether the spell is done for all ilks or not.
     /// @return res Whether the spells is done or not.
-function done() external view returns (bool res) {
-    for (uint256 i = 0; i < ilkList.length; i++) {
-        if (!_done(ilkList[i])) {
-            return false;
+    function done() external view returns (bool res) {
+        for (uint256 i = 0; i < ilkList.length; i++) {
+            if (!_done(ilkList[i])) {
+                return false;
+            }
         }
+        return true;
     }
-    return true;
-}
 
     /// @notice Returns whether the spell is done or not for the specified ilk.
     function _done(bytes32 _ilk) internal view virtual returns (bool);

@@ -52,7 +52,7 @@ abstract contract DssEmergencySpell is DssEmergencySpellLike {
     /// @dev The chainlog contract reference.
     ChainlogLike internal constant _log = ChainlogLike(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
 
-    // @dev The reference to the `pause` contract.
+    /// @dev The reference to the `pause` contract.
     address public immutable pause = _log.getAddress("MCD_PAUSE");
     /// @dev The chainlog address.
     address public constant log = address(_log);
@@ -63,72 +63,56 @@ abstract contract DssEmergencySpell is DssEmergencySpellLike {
     bytes public constant sig = abi.encodeWithSelector(DssAction.execute.selector);
     /// @dev Emergency spells should not expire.
     uint256 public constant expiration = type(uint256).max;
-    // @dev An emergency spell does not need to be cast, as all actions happen during the schedule phase.
-    //      Notice that cast is usually not supposed to revert, so it is implemented as a no-op.
+    /// @dev An emergency spell does not need to be cast, as all actions happen during the schedule phase.
+    ///      Notice that cast is usually not supposed to revert, so it is implemented as a no-op.
     uint256 internal immutable _nextCastTime = type(uint256).max;
-    // @dev Office Hours is always `false` for emergency spells.
+    /// @dev Office Hours is always `false` for emergency spells.
     bool public constant officeHours = false;
-    // @dev `action` is expected to return a valid address.
-    //      We also implement the `DssAction` interface in this contract.
+    /// @dev `action` is expected to return a valid address.
+    ///      We also implement the `DssAction` interface in this contract.
     address public immutable action = address(this);
 
-    /**
-     * @dev In regular spells, `tag` is an immutable variable with the code hash of the spell action.
-     *      It specifically uses a separate contract for spell action because `tag` is immutable and the code hash of
-     *      the contract being initialized is not accessible in the constructor.
-     *      Since we do not have a separate contract for actions in Emergency Spells, `tag` has to be turned into a
-     *      getter function instead of an immutable variable.
-     * @return The contract codehash.
-     */
+    /// @dev In regular spells, `tag` is an immutable variable with the code hash of the spell action.
+    ///      It specifically uses a separate contract for spell action because `tag` is immutable and the code hash of
+    ///      the contract being initialized is not accessible in the constructor.
+    ///      Since we do not have a separate contract for actions in Emergency Spells, `tag` has to be turned into a
+    ///      getter function instead of an immutable variable.
+    /// @return The contract codehash.
     function tag() external view returns (bytes32) {
         return address(this).codehash;
     }
 
-    /**
-     * @notice Triggers the emergency actions of the spell.
-     * @dev Emergency spells are triggered when scheduled.
-     *      This function maintains the name for compatibility with regular spells, however nothing is actually being
-     *      scheduled. Emergency spells take effect immediately, so there is no need to call `pause.plot()`.
-     */
+    /// @notice Triggers the emergency actions of the spell.
+    /// @dev Emergency spells are triggered when scheduled.
+    ///      This function maintains the name for compatibility with regular spells, however nothing is actually being
+    ///      scheduled. Emergency spells take effect immediately, so there is no need to call `pause.plot()`.
     function schedule() external {
         _emergencyActions();
     }
 
-    /**
-     * @notice Implements the emergency actions to be triggered by the spell.
-     */
+    /// @notice Implements the emergency actions to be triggered by the spell.
     function _emergencyActions() internal virtual;
 
-    /**
-     * @notice Returns `_nextCastTime`.
-     * @dev This function exists only to keep interface compatibility with regular spells.
-     */
+    /// @notice Returns `_nextCastTime`.
+    /// @dev This function exists only to keep interface compatibility with regular spells.
     function nextCastTime() external view returns (uint256 castTime) {
         return _nextCastTime;
     }
 
-    /**
-     * @notice No-op.
-     * @dev This function exists only to keep interface compatibility with regular spells.
-     */
+    /// @notice No-op.
+    /// @dev This function exists only to keep interface compatibility with regular spells.
     function cast() external {}
 
-    /**
-     * @notice No-op.
-     * @dev This function exists only to keep interface compatibility with regular spells.
-     */
+    /// @notice No-op.
+    /// @dev This function exists only to keep interface compatibility with regular spells.
     function execute() external {}
 
-    /**
-     * @notice No-op.
-     * @dev This function exists only to keep interface compatibility with regular spells.
-     */
+    /// @notice No-op.
+    /// @dev This function exists only to keep interface compatibility with regular spells.
     function actions() external {}
 
-    /**
-     * @notice Returns `nextCastTime`, regardless of the input parameter.
-     * @dev This function exists only to keep interface compatibility with regular spells.
-     */
+    /// @notice Returns `nextCastTime`, regardless of the input parameter.
+    /// @dev This function exists only to keep interface compatibility with regular spells.
     function nextCastTime(uint256) external view returns (uint256 castTime) {
         return _nextCastTime;
     }

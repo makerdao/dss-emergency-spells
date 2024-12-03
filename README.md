@@ -142,14 +142,14 @@ bespoke spell in record time.
 
 ## Implemented Actions
 
-| Description        |     Single ilk     |     Multi ilk      |
-| :----------------- | :----------------: | :----------------: |
-| Wipe `line`        | :white_check_mark: | :white_check_mark: |
-| Set `Clip` breaker | :white_check_mark: | :white_check_mark: |
-| Disable `DDM`      | :white_check_mark: |        :x:         |
-| Stop `OSM`         | :white_check_mark: | :white_check_mark: |
-| Halt `PSM`         | :white_check_mark: |        :x:         |
-| Stop `Splitter`    |        :x:         | :white_check_mark: |
+| Description        | Single-ilk         | Grouped            | Multi-ilk / Global |
+| :----------        | :--------:         | :-----:            | :----------------: |
+| Wipe `line`        | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| Set `Clip` breaker | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| Disable `DDM`      | :white_check_mark: | :x:                | :x:                |
+| Stop `OSM`         | :white_check_mark: | :x:                | :white_check_mark: |
+| Halt `LitePSM`     | :white_check_mark: | :x:                | :x:                |
+| Stop `Splitter`    | :x:                | :x:                | :white_check_mark: |
 
 ### Wipe `line`
 
@@ -222,13 +222,26 @@ constructor.</sub>
 
 [spell-tag]: https://github.com/makerdao/dss-exec-lib/blob/69b658f35d8618272cd139dfc18c5713caf6b96b/src/DssExec.sol#L75
 
-Some types of emergency spells may come in 2 flavors:
+Some types of emergency spells may come in 3 flavors:
 
-1. Single ilk: applies the desired spell action for a single pre-defined ilk.
-1. Multi ilk: applies the desired spell action for all applicable ilks.
+1. Single-ilk: applies the desired spell action to a single pre-defined ilk.
+1. Grouped: applies the desired spell action to a list of related ilks (i.e.: `ETH-A`, `ETH-B` and `ETH-C`)
+1. Multi: applies the desired spell action to all applicable ilks.
 
 Furthermore, this repo provides on-chain factories for single ilk emergency spells to make it easier to deploy for new
 ilks.
+
+
+### About storage variables in `DssGroupedEmergencySpell`
+
+Regular spell actions are executed through a `delegatecall` from `MCD_PAUSE_PROXY`. For that reason, they usually should
+not have storage variables, as they would be accessing and interacting with `MCD_PAUSE_PROXY`'s storage, not their own.
+
+However, Emergency Spells are not required to interact with `MCD_PAUSE` and `MCD_PAUSE_PROXY` at all. They execute
+actions through regular `call` on `Mom` contracts, so we do not have this limitation.
+
+Even if the contract is somehow misused and used as a regular spell, interacting with `MCD_PAUSE`, there would not be a
+problem because the storage should not be changed outside the constructor by the concrete implementations.
 
 ### About the `done()` function
 
@@ -240,7 +253,7 @@ storage variable, it becomes a getter function that will return:
 
 - `false`: if the emergency spell can be scheduled in the current state, given it is lifted to the hat.
 - `true`: if the desired effects of the spell can be verified or if there is anything that would prevent the spell from
-  being scheduled (i.e.: bad system config)
+  being scheduled (i.e.: bad system config).
 
 Generally speaking, `done` should almost always return `false` for any emergency spell. If it returns `true` it means it
 has just been scheduled or there is most likely something wrong with the modules touched by it. The exception is the

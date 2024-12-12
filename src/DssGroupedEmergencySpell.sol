@@ -112,7 +112,7 @@ abstract contract DssGroupedEmergencySpell is DssEmergencySpell, DssGroupedEmerg
     }
 
     /// @notice Executes the emergency actions for the specified ilk.
-    /// @param _ilk The ilk to set the related Clip breaker.
+    /// @param _ilk The ilk upon which to execute the emergency actions.
     function _emergencyActions(bytes32 _ilk) internal virtual;
 
     /// @notice Returns whether the spell is done for all ilks or not.

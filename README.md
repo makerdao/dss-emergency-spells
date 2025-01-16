@@ -38,13 +38,11 @@ bespoke spell in record time.
 
 ### Standalone Spells
 
-<!--
 #### `SplitterStopSpell`
 
 ```
-0x04576C3B9Bd1623627b5bcaaD3Ac75fA70e298df
+0x12531afC02aC18a9597Cfe8a889b7B948243a60b
 ```
--->
 
 #### `MultiClipBreakerSpell`
 
@@ -72,8 +70,18 @@ bespoke spell in record time.
 | `SingleDdmDisableFactory`  | `0x8BA0f6C4009Ea915706e1bCfB1d879E34587dC69` |
 | `SingleLineWipeFactory`    | `0xA649730fA92695096b7C49DBae682995F8906684` |
 | `SingleOsmStopFactory`     | `0x83211c74131bA2B3de7538f588f1c2f309e81eF0` |
+| `SingleLitePsmHaltFactory` | `0xB261b73698F6dBC03cB1E998A3176bdD81C3514A` |
 
-#### `SingleClipBreakerSpell`
+#### `GroupedClipBreakerSpell`
+
+| Ilks                       | Address                                      |
+| -------------------------- | -------------------------------------------- |
+| **ETH-A, ETH-B, ETH-C**    | `0x7d50528DE0F6117dA4e7bDC3dc15EDF78f8f175f` |
+| **LSE-MKR-A**              | `0xc75Bc88b5d1A220E982AabAd3142f75B14D0009b` |
+| **WBTC-A, WBTC-B, WBTC-C** | `0x8d1E22d6490FEf486309C6430140b9f1f12D31ED` |
+| **WSTETH-A, WSTETH-B**     | `0xa383fF9F207202A7A4C750E2395B8793f9D2Ff84` |
+
+#### [DEPRECATED] `SingleClipBreakerSpell`
 
 | Ilk         | Address                                      |
 | ----------- | -------------------------------------------- |
@@ -95,7 +103,17 @@ bespoke spell in record time.
 | `DIRECT-SPARK-MORPHO-DAI`   | `0xD6513162b30D0BEC7e9E81c4F2Ce2C07d7D2a372` |
 | `DIRECT-SPK-AAVE-LIDO-USDS` | `0x36cbC441C671f75BB5aE1150b12106D1D921d53c` |
 
-#### `SingleLineWipeSpell`
+#### `GroupedLineWipeSpell`
+
+| Ilks                         | Address                                      |
+| ---------------------------- | -------------------------------------------- |
+| `ALLOCATOR-SPARK-A`          | `0x68220D37eA40A60ACDa21cb607085225280dc2DB` |
+| `ETH-A`, `ETH-B`, `ETH-C`    | `0x07bc4A6F65A7965856aFff5af67a702220367d5f` |
+| `LSE-MKR-A`                  | `0xCc6aE0768AA40a272b6CF116b39f3CDb7dA3a928` |
+| `WBTC-A`, `WBTC-B`, `WBTC-C` | `0xC9c4e0C7F769Ec16a39e3fc016e2A4Dc639EAa74` |
+| `WSTETH-A`, `WSTETH-B`       | `0x1a1F368e99F22dED25ECfeA2A87a7590771b6ED0` |
+
+#### [DEPRECATED] `SingleLineWipeSpell`
 
 | Ilk                 | Address                                      |
 | ------------------- | -------------------------------------------- |
@@ -116,15 +134,13 @@ bespoke spell in record time.
 | `WSTETH-A`          | `0x6A7710534E840a64ba709775ab9F23a6894bECa4` |
 | `WSTETH-B`          | `0x79D7e31520FCD7bB5bf25fa13b2028cB5a32699D` |
 
-<!--
 #### `SingleLitePsmHaltSpell`
 
-| Ilk                | Flow | Address                                      |
-|--------------------|------|----------------------------------------------|
-| ``LITE-PSM-USDC-A` | BOTH | `TODO` |
-| ``LITE-PSM-USDC-A` | BUY  | `TODO` |
-| ``LITE-PSM-USDC-A` | SELL | `TODO` |
--->
+| Ilk                    | Flow   | Address                                      |
+| ---------------------- | ----   | ------------------------------------------   |
+| `LITE-PSM-USDC-A`      | `BOTH` | `0x83Ff10f34076293Ea354Ba2Bef1374bBad023B73` |
+| `LITE-PSM-USDC-A`      | `BUY`  | `0xBFd0B1ae2698E5567cd07A62c217114457B81EDD` |
+| `LITE-PSM-USDC-A`      | `SELL` | `0x1573C9Cb707e3031115b6b7cD1cd4ED34906b7A3` |
 
 #### `SingleOsmStopSpell`
 

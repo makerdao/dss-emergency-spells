@@ -74,12 +74,12 @@ bespoke spell in record time.
 
 #### `GroupedClipBreakerSpell`
 
-| Ilks                       | Address                                      |
-| -------------------------- | -------------------------------------------- |
-| **ETH-A, ETH-B, ETH-C**    | `0x7d50528DE0F6117dA4e7bDC3dc15EDF78f8f175f` |
-| **LSE-MKR-A**              | `0xc75Bc88b5d1A220E982AabAd3142f75B14D0009b` |
-| **WBTC-A, WBTC-B, WBTC-C** | `0x8d1E22d6490FEf486309C6430140b9f1f12D31ED` |
-| **WSTETH-A, WSTETH-B**     | `0xa383fF9F207202A7A4C750E2395B8793f9D2Ff84` |
+| Ilks                         | Address                                      |
+| ---------------------------- | -------------------------------------------- |
+| `ETH-A`, `ETH-B,` `ETH-C`    | `0x7d50528DE0F6117dA4e7bDC3dc15EDF78f8f175f` |
+| `LSE-MKR-A`                  | `0xc75Bc88b5d1A220E982AabAd3142f75B14D0009b` |
+| `WBTC-A`, `WBTC-B`, `WBTC-C` | `0x8d1E22d6490FEf486309C6430140b9f1f12D31ED` |
+| `WSTETH-A`, `WSTETH-B`       | `0xa383fF9F207202A7A4C750E2395B8793f9D2Ff84` |
 
 #### [DEPRECATED] `SingleClipBreakerSpell`
 

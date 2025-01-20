@@ -84,7 +84,7 @@ bespoke spell in record time.
 #### [DEPRECATED] `SingleClipBreakerSpell`
 
 | Ilk             | Address                                          |
-| --------------- | --------------------------------------------     |
+| --------------- | ------------------------------------------------ |
 | ~~`ETH-A`~~     | ~~`0xa1122011E26d160b263295476e294A17560213D1`~~ |
 | ~~`ETH-B`~~     | ~~`0x1efe035022c63ACB53f3662bcb18683F522d2811`~~ |
 | ~~`ETH-C`~~     | ~~`0xDef93051a647C5c3C5ce0B32C32B4394b4a55a85`~~ |
@@ -116,8 +116,8 @@ bespoke spell in record time.
 #### [DEPRECATED] ~~SingleLineWipeSpell`~~
 
 | Ilk                     | Address                                          |
-| ----------------------- | --------------------------------------------     |
-| ~~`ALLOCATOR-SPARK-A`~~ | `0xFaF2Cd3a76EBEFB257BE0ea7dF5D222acDDA6734`     |
+| ----------------------- | ------------------------------------------------ |
+| ~~`ALLOCATOR-SPARK-A`~~ | ~~`0xFaF2Cd3a76EBEFB257BE0ea7dF5D222acDDA6734`~~ |
 | ~~`ETH-A`~~             | ~~`0x46BAeb8fb770f9bcfb5cF9A696F80fcEe6D0dcfE`~~ |
 | ~~`ETH-B`~~             | ~~`0x9E8516f7Ba14429917343c7Bc4c9d7378d298DDF`~~ |
 | ~~`ETH-C`~~             | ~~`0x0b6D27cf223D6e9ED2e55D5ADcF1909bbcEcFA32`~~ |

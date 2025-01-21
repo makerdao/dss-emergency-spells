@@ -38,13 +38,11 @@ bespoke spell in record time.
 
 ### Standalone Spells
 
-<!--
 #### `SplitterStopSpell`
 
 ```
-0x04576C3B9Bd1623627b5bcaaD3Ac75fA70e298df
+0x12531afC02aC18a9597Cfe8a889b7B948243a60b
 ```
--->
 
 #### `MultiClipBreakerSpell`
 
@@ -66,26 +64,36 @@ bespoke spell in record time.
 
 ### On-chain Emergency Spell Factories
 
-| Name                       | Address                                      |
-| -------------------------- | -------------------------------------------- |
-| `SingleClipBreakerFactory` | `0xd7321d0919573a33f9147fd2579a48f60237564a` |
-| `SingleDdmDisableFactory`  | `0x8BA0f6C4009Ea915706e1bCfB1d879E34587dC69` |
-| `SingleLineWipeFactory`    | `0xA649730fA92695096b7C49DBae682995F8906684` |
-| `SingleOsmStopFactory`     | `0x83211c74131bA2B3de7538f588f1c2f309e81eF0` |
+| Name                        | Address                                      |
+| --------------------------- | -------------------------------------------- |
+| `GroupedClipBreakerFactory` | `0x867852d30bb3cb1411fb4e404fae28ef742b1023` |
+| `GroupedLineWipeFactory`    | `0x8646f8778b58a0df118facedf522181ba7277529` |
+| `SingleDdmDisableFactory`   | `0x8BA0f6C4009Ea915706e1bCfB1d879E34587dC69` |
+| `SingleOsmStopFactory`      | `0x83211c74131bA2B3de7538f588f1c2f309e81eF0` |
+| `SingleLitePsmHaltFactory`  | `0xB261b73698F6dBC03cB1E998A3176bdD81C3514A` |
 
-#### `SingleClipBreakerSpell`
+#### `GroupedClipBreakerSpell`
 
-| Ilk         | Address                                      |
-| ----------- | -------------------------------------------- |
-| `ETH-A`     | `0xa1122011E26d160b263295476e294A17560213D1` |
-| `ETH-B`     | `0x1efe035022c63ACB53f3662bcb18683F522d2811` |
-| `ETH-C`     | `0xDef93051a647C5c3C5ce0B32C32B4394b4a55a85` |
-| `LSE-MKR-A` | `0x9CF8Bd21814B57b9Ca5B368efb00A551682b7823` |
-| `WBTC-A`    | `0x43Aa7ED6BA07274104f5Ea0e08E6C236B02Bc636` |
-| `WBTC-B`    | `0x0ffE29C34da1C4760a1409DE19045a5ca41a7912` |
-| `WBTC-C`    | `0x9d5F59D4a599888E77899Afa8cc4bEd2334557d3` |
-| `WSTETH-A`  | `0x4e95dBC199c52F3Fb6Cfff1514099fF6A3942E56` |
-| `WSTETH-B`  | `0x052eDfA59F7eA13f27B0E886a0f89e88BA7b7Ea3` |
+| Ilks                         | Address                                      |
+| ---------------------------- | -------------------------------------------- |
+| `ETH-A`, `ETH-B,` `ETH-C`    | `0x7d50528DE0F6117dA4e7bDC3dc15EDF78f8f175f` |
+| `LSE-MKR-A`                  | `0xc75Bc88b5d1A220E982AabAd3142f75B14D0009b` |
+| `WBTC-A`, `WBTC-B`, `WBTC-C` | `0x8d1E22d6490FEf486309C6430140b9f1f12D31ED` |
+| `WSTETH-A`, `WSTETH-B`       | `0xa383fF9F207202A7A4C750E2395B8793f9D2Ff84` |
+
+#### [DEPRECATED] `SingleClipBreakerSpell`
+
+| Ilk             | Address                                          |
+| --------------- | ------------------------------------------------ |
+| ~~`ETH-A`~~     | ~~`0xa1122011E26d160b263295476e294A17560213D1`~~ |
+| ~~`ETH-B`~~     | ~~`0x1efe035022c63ACB53f3662bcb18683F522d2811`~~ |
+| ~~`ETH-C`~~     | ~~`0xDef93051a647C5c3C5ce0B32C32B4394b4a55a85`~~ |
+| ~~`LSE-MKR-A`~~ | ~~`0x9CF8Bd21814B57b9Ca5B368efb00A551682b7823`~~ |
+| ~~`WBTC-A`~~    | ~~`0x43Aa7ED6BA07274104f5Ea0e08E6C236B02Bc636`~~ |
+| ~~`WBTC-B`~~    | ~~`0x0ffE29C34da1C4760a1409DE19045a5ca41a7912`~~ |
+| ~~`WBTC-C`~~    | ~~`0x9d5F59D4a599888E77899Afa8cc4bEd2334557d3`~~ |
+| ~~`WSTETH-A`~~  | ~~`0x4e95dBC199c52F3Fb6Cfff1514099fF6A3942E56`~~ |
+| ~~`WSTETH-B`~~  | ~~`0x052eDfA59F7eA13f27B0E886a0f89e88BA7b7Ea3`~~ |
 
 #### `SingleDdmDisableSpell`
 
@@ -95,36 +103,44 @@ bespoke spell in record time.
 | `DIRECT-SPARK-MORPHO-DAI`   | `0xD6513162b30D0BEC7e9E81c4F2Ce2C07d7D2a372` |
 | `DIRECT-SPK-AAVE-LIDO-USDS` | `0x36cbC441C671f75BB5aE1150b12106D1D921d53c` |
 
-#### `SingleLineWipeSpell`
+#### `GroupedLineWipeSpell`
 
-| Ilk                 | Address                                      |
-| ------------------- | -------------------------------------------- |
-| `ALLOCATOR-SPARK-A` | `0xFaF2Cd3a76EBEFB257BE0ea7dF5D222acDDA6734` |
-| `ETH-A`             | `0x46BAeb8fb770f9bcfb5cF9A696F80fcEe6D0dcfE` |
-| `ETH-B`             | `0x9E8516f7Ba14429917343c7Bc4c9d7378d298DDF` |
-| `ETH-C`             | `0x0b6D27cf223D6e9ED2e55D5ADcF1909bbcEcFA32` |
-| `LSE-MKR-A`         | `0xeeb0D6bdBa6b74E1813C8e8AAD3c927e5d86F87D` |
-| `RWA001-A`          | `0xE4bcBe6a8A4564c9C7ECED4F5a827cc106352602` |
-| `RWA002-A`          | `0x944F013edF4886bD0871391EFFc98911B8F0821f` |
-| `RWA009-A`          | `0x46cbB3f96cC07205Dc8EE495615f144E288c8815` |
-| `RWA012-A`          | `0xd9314ff8f9DCB2e7C1434155800B54d02Ae7f6f5` |
-| `RWA013-A`          | `0x4ed518908dF1BD4b1C8a48602e4FADf2Fd248D9f` |
-| `RWA015-A`          | `0x9A0A0700253cBb7372E3A6659fb8Be11866F32FA` |
-| `WBTC-A`            | `0xd960050a502A27bBF33228E033782CB35B72e74D` |
-| `WBTC-B`            | `0x47f20D5e95D8477a9dF2D483414Bce28b87B10Eb` |
-| `WBTC-C`            | `0x1BC7cA708d882a82bdB1ade4838BeDB90144127c` |
-| `WSTETH-A`          | `0x6A7710534E840a64ba709775ab9F23a6894bECa4` |
-| `WSTETH-B`          | `0x79D7e31520FCD7bB5bf25fa13b2028cB5a32699D` |
+| Ilks                         | Address                                      |
+| ---------------------------- | -------------------------------------------- |
+| `ALLOCATOR-SPARK-A`          | `0x68220D37eA40A60ACDa21cb607085225280dc2DB` |
+| `ETH-A`, `ETH-B`, `ETH-C`    | `0x07bc4A6F65A7965856aFff5af67a702220367d5f` |
+| `LSE-MKR-A`                  | `0xCc6aE0768AA40a272b6CF116b39f3CDb7dA3a928` |
+| `WBTC-A`, `WBTC-B`, `WBTC-C` | `0xC9c4e0C7F769Ec16a39e3fc016e2A4Dc639EAa74` |
+| `WSTETH-A`, `WSTETH-B`       | `0x1a1F368e99F22dED25ECfeA2A87a7590771b6ED0` |
 
-<!--
+#### [DEPRECATED] ~~SingleLineWipeSpell`~~
+
+| Ilk                     | Address                                          |
+| ----------------------- | ------------------------------------------------ |
+| ~~`ALLOCATOR-SPARK-A`~~ | ~~`0xFaF2Cd3a76EBEFB257BE0ea7dF5D222acDDA6734`~~ |
+| ~~`ETH-A`~~             | ~~`0x46BAeb8fb770f9bcfb5cF9A696F80fcEe6D0dcfE`~~ |
+| ~~`ETH-B`~~             | ~~`0x9E8516f7Ba14429917343c7Bc4c9d7378d298DDF`~~ |
+| ~~`ETH-C`~~             | ~~`0x0b6D27cf223D6e9ED2e55D5ADcF1909bbcEcFA32`~~ |
+| ~~`LSE-MKR-A`~~         | ~~`0xeeb0D6bdBa6b74E1813C8e8AAD3c927e5d86F87D`~~ |
+| ~~`RWA001-A`~~          | ~~`0xE4bcBe6a8A4564c9C7ECED4F5a827cc106352602`~~ |
+| ~~`RWA002-A`~~          | ~~`0x944F013edF4886bD0871391EFFc98911B8F0821f`~~ |
+| ~~`RWA009-A`~~          | ~~`0x46cbB3f96cC07205Dc8EE495615f144E288c8815`~~ |
+| ~~`RWA012-A`~~          | ~~`0xd9314ff8f9DCB2e7C1434155800B54d02Ae7f6f5`~~ |
+| ~~`RWA013-A`~~          | ~~`0x4ed518908dF1BD4b1C8a48602e4FADf2Fd248D9f`~~ |
+| ~~`RWA015-A`~~          | ~~`0x9A0A0700253cBb7372E3A6659fb8Be11866F32FA`~~ |
+| ~~`WBTC-A`~~            | ~~`0xd960050a502A27bBF33228E033782CB35B72e74D`~~ |
+| ~~`WBTC-B`~~            | ~~`0x47f20D5e95D8477a9dF2D483414Bce28b87B10Eb`~~ |
+| ~~`WBTC-C`~~            | ~~`0x1BC7cA708d882a82bdB1ade4838BeDB90144127c`~~ |
+| ~~`WSTETH-A`~~          | ~~`0x6A7710534E840a64ba709775ab9F23a6894bECa4`~~ |
+| ~~`WSTETH-B`~~          | ~~`0x79D7e31520FCD7bB5bf25fa13b2028cB5a32699D`~~ |
+
 #### `SingleLitePsmHaltSpell`
 
-| Ilk                | Flow | Address                                      |
-|--------------------|------|----------------------------------------------|
-| ``LITE-PSM-USDC-A` | BOTH | `TODO` |
-| ``LITE-PSM-USDC-A` | BUY  | `TODO` |
-| ``LITE-PSM-USDC-A` | SELL | `TODO` |
--->
+| Ilk                    | Flow   | Address                                      |
+| ---------------------- | ----   | ------------------------------------------   |
+| `LITE-PSM-USDC-A`      | `BOTH` | `0x83Ff10f34076293Ea354Ba2Bef1374bBad023B73` |
+| `LITE-PSM-USDC-A`      | `BUY`  | `0xBFd0B1ae2698E5567cd07A62c217114457B81EDD` |
+| `LITE-PSM-USDC-A`      | `SELL` | `0x1573C9Cb707e3031115b6b7cD1cd4ED34906b7A3` |
 
 #### `SingleOsmStopSpell`
 

@@ -18,7 +18,7 @@ pragma solidity ^0.8.16;
 import {DssEmergencySpell} from "../DssEmergencySpell.sol";
 
 interface DSPCMomLike {
-    function halt() external;
+    function halt(address) external;
 }
 
 interface DSPCLike {
@@ -44,7 +44,7 @@ contract DSPCHaltSpell is DssEmergencySpell {
      * @notice Disables DSPC
      */
     function _emergencyActions() internal override {
-        dspcMom.halt();
+        dspcMom.halt(address(dspc));
         emit Halt();
     }
 

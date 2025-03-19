@@ -34,7 +34,7 @@ contract DSPCHaltSpellTest is DssTest {
     DSPCHaltSpell spell;
 
     function setUp() public {
-        vm.createSelectFork("mainnet");
+        vm.createSelectFork("dspc");
 
         dss = MCD.loadFromChainlog(CHAINLOG);
         MCD.giveAdminAccess(dss);

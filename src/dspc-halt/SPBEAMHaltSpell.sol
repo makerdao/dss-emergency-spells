@@ -28,10 +28,6 @@ interface SPBEAMLike {
 
 /// @title SP-BEAM Halt Emergency Spell
 /// @notice Will disable the SPBEAM (Stability Parameter Bounded External Access Module)
-/// @custom:authors [Oddaf]
-/// @custom:reviewers []
-/// @custom:auditors []
-/// @custom:bounties []
 contract SPBEAMHaltSpell is DssEmergencySpell {
     string public constant override description = "Emergency Spell | Halt SPBEAM";
 

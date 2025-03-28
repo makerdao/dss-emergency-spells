@@ -15,7 +15,6 @@ fs_permissions = [
 ]
 
 
-
 [rpc_endpoints]
 mainnet = "${ETH_RPC_URL}"
 spbeam = "https://virtual.mainnet.rpc.tenderly.co/6182d36e-31c1-4270-aa05-2f6f99fc8861"

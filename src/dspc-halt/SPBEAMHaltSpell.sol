@@ -17,60 +17,60 @@ pragma solidity ^0.8.16;
 
 import {DssEmergencySpell} from "../DssEmergencySpell.sol";
 
-interface DSPCMomLike {
+interface SPBEAMMomLike {
     function halt(address) external;
 }
 
-interface DSPCLike {
+interface SPBEAMLike {
     function wards(address) external view returns (uint256);
     function bad() external view returns (uint256);
 }
 
-/// @title DSPC Halt Emergency Spell
-/// @notice Will disable the DSPC (Direct Stability Parameters Change Module)
+/// @title SP-BEAM Halt Emergency Spell
+/// @notice Will disable the SPBEAM (Stability Parameter Bounded External Access Module)
 /// @custom:authors [Oddaf]
 /// @custom:reviewers []
 /// @custom:auditors []
 /// @custom:bounties []
-contract DSPCHaltSpell is DssEmergencySpell {
-    string public constant override description = "Emergency Spell | Halt DSPC";
+contract SPBEAMHaltSpell is DssEmergencySpell {
+    string public constant override description = "Emergency Spell | Halt SPBEAM";
 
-    DSPCMomLike public immutable dspcMom = DSPCMomLike(_log.getAddress("DSPC_MOM"));
-    DSPCLike public immutable dspc = DSPCLike(_log.getAddress("MCD_DSPC"));
+    SPBEAMMomLike public immutable spbeamMom = SPBEAMMomLike(_log.getAddress("SPBEAM_MOM"));
+    SPBEAMLike public immutable spbeam = SPBEAMLike(_log.getAddress("MCD_SP_BEAM"));
 
     event Halt();
 
     /**
-     * @notice Disables DSPC
+     * @notice Disables SPBEAM
      */
     function _emergencyActions() internal override {
-        dspcMom.halt(address(dspc));
+        spbeamMom.halt(address(spbeam));
         emit Halt();
     }
 
     /**
      * @notice Returns whether the spell is done or not.
-     * @dev Checks if `dspc.bad() == 1` (disabled).
+     * @dev Checks if `spbeam.bad() == 1` (disabled).
      *      The spell would revert if any of the following conditions holds:
-     *          1. DSPCMom is not a ward of DSPC
-     *          2. Call to DSPC `hop()` reverts (likely not a DSPC)
+     *          1. SPBEAMMom is not a ward of SPBEAM
+     *          2. Call to SPBEAM `hop()` reverts (likely not a SPBEAM)
      *      In both cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
-        try dspc.wards(address(dspcMom)) returns (uint256 ward) {
-            // Ignore DSPC instances that have not relied on DSPCMom.
+        try spbeam.wards(address(spbeamMom)) returns (uint256 ward) {
+            // Ignore SPBEAM instances that have not relied on SPBEAMMom.
             if (ward == 0) {
                 return true;
             }
         } catch {
-            // If the call failed, it means the contract is most likely not a DSPC instance.
+            // If the call failed, it means the contract is most likely not a SPBEAM instance.
             return true;
         }
 
-        try dspc.bad() returns (uint256 bad) {
+        try spbeam.bad() returns (uint256 bad) {
             return bad == 1;
         } catch {
-            // If the call failed, it means the contract is most likely not a DSPC instance.
+            // If the call failed, it means the contract is most likely not a SPBEAM instance.
             return true;
         }
     }

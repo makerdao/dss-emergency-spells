@@ -3,10 +3,9 @@ pragma solidity ^0.8.16;
 
 import {stdStorage, StdStorage} from "forge-std/Test.sol";
 import {DssTest, DssInstance, MCD, GodMode} from "dss-test/DssTest.sol";
-import {SPBEAMHaltSpell} from "./SPBEAMHaltSpell.sol";
+import {SingleBeamHaltSpell, SingleBeamHaltFactory} from "src/beam-halt/SingleBeamHaltSpell.sol";
 
-interface SPBEAMLike {
-    function rely(address) external;
+interface BeamLike {
     function deny(address) external;
     function bad() external view returns (uint256);
 }
@@ -17,21 +16,22 @@ contract MockAuth {
     }
 }
 
-contract MockSPBEAMBadReverts is MockAuth {
+contract MockBeamBadReverts is MockAuth {
     function bad() external pure {
         revert();
     }
 }
 
-contract SPBEAMHaltSpellTest is DssTest {
+contract SingleBeamHaltSpellTest is DssTest {
     using stdStorage for StdStorage;
 
     address constant CHAINLOG = 0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F;
     DssInstance dss;
     address chief;
     address spbeamMom;
-    SPBEAMLike spbeam;
-    SPBEAMHaltSpell spell;
+    BeamLike spbeam;
+    SingleBeamHaltSpell spell;
+    SingleBeamHaltFactory factory;
 
     function setUp() public {
         vm.createSelectFork("spbeam");
@@ -40,8 +40,10 @@ contract SPBEAMHaltSpellTest is DssTest {
         MCD.giveAdminAccess(dss);
         chief = dss.chainlog.getAddress("MCD_ADM");
         spbeamMom = dss.chainlog.getAddress("SPBEAM_MOM");
-        spbeam = SPBEAMLike(dss.chainlog.getAddress("MCD_SP_BEAM"));
-        spell = new SPBEAMHaltSpell();
+        spbeam = BeamLike(dss.chainlog.getAddress("MCD_SP_BEAM"));
+        
+        factory = new SingleBeamHaltFactory(spbeamMom);
+        spell = SingleBeamHaltSpell(factory.deploy(address(spbeam)));
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));
 
@@ -50,7 +52,7 @@ contract SPBEAMHaltSpellTest is DssTest {
 
     function testSPBEAMHaltOnSchedule() public {
         uint256 preBad = spbeam.bad();
-        assertTrue(preBad != 1, "before: SPBEAM already stopped");
+        assertTrue(preBad != 1, "before: BEAM already stopped");
         assertFalse(spell.done(), "before: spell already done");
 
         vm.expectEmit(true, false, false, false, address(spell));
@@ -59,7 +61,7 @@ contract SPBEAMHaltSpellTest is DssTest {
         spell.schedule();
 
         uint256 postBad = spbeam.bad();
-        assertEq(postBad, 1, "after: SPBEAM not stopped");
+        assertEq(postBad, 1, "after: BEAM not stopped");
         assertTrue(spell.done(), "after: spell not done");
     }
 
@@ -78,7 +80,7 @@ contract SPBEAMHaltSpellTest is DssTest {
     }
 
     function testDoneWhenLiteSPBEAMHaltReverts() public {
-        vm.etch(address(spbeam), address(new MockSPBEAMBadReverts()).code);
+        vm.etch(address(spbeam), address(new MockBeamBadReverts()).code);
 
         assertTrue(spell.done(), "spell not done");
     }
@@ -87,14 +89,14 @@ contract SPBEAMHaltSpellTest is DssTest {
         stdstore.target(chief).sig("hat()").checked_write(address(0));
 
         uint256 preBad = spbeam.bad();
-        assertTrue(preBad != 1, "before: SPBEAM already stopped");
+        assertTrue(preBad != 1, "before: BEAM already stopped");
         assertFalse(spell.done(), "before: spell already done");
 
         vm.expectRevert();
         spell.schedule();
 
         uint256 postBad = spbeam.bad();
-        assertEq(postBad, preBad, "after: SPBEAM stopped unexpectedly");
+        assertEq(postBad, preBad, "after: BEAM stopped unexpectedly");
         assertFalse(spell.done(), "after: spell done unexpectedly");
     }
 

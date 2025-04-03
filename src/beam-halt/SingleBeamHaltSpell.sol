@@ -17,57 +17,82 @@ pragma solidity ^0.8.16;
 
 import {DssEmergencySpell} from "../DssEmergencySpell.sol";
 
-interface SPBEAMMomLike {
+interface BeamMomLike {
     function halt(address) external;
 }
 
-interface SPBEAMLike {
+interface BeamLike {
     function wards(address) external view returns (uint256);
     function bad() external view returns (uint256);
 }
 
-/// @title SP-BEAM Halt Emergency Spell
-/// @notice Will disable the SPBEAM (Stability Parameter Bounded External Access Module)
-contract SPBEAMHaltSpell is DssEmergencySpell {
-    string public constant override description = "Emergency Spell | Halt SPBEAM";
+/// @title BEAM Halt Emergency Spell
+/// @notice Will disable a BEAM (Bounded External Access Module)
+contract SingleBeamHaltSpell is DssEmergencySpell {
+    string public constant override description = "Emergency Spell | Halt BEAM";
 
-    SPBEAMMomLike public immutable spbeamMom = SPBEAMMomLike(_log.getAddress("SPBEAM_MOM"));
-    SPBEAMLike public immutable spbeam = SPBEAMLike(_log.getAddress("MCD_SP_BEAM"));
+    BeamMomLike public immutable beamMom;
+    BeamLike public immutable beam;
 
     event Halt();
 
     /**
-     * @notice Disables SPBEAM
+     * @notice constructor
+     * @param _beamMom The address of the BEAMMom contract
+     * @param _beam The address of the BEAM contract
+     */
+    constructor(address _beamMom, address _beam) {
+        beamMom = BeamMomLike(_beamMom);
+        beam = BeamLike(_beam);
+    }
+
+    /**
+     * @notice Disables BEAM
      */
     function _emergencyActions() internal override {
-        spbeamMom.halt(address(spbeam));
+        beamMom.halt(address(beam));
         emit Halt();
     }
 
     /**
      * @notice Returns whether the spell is done or not.
-     * @dev Checks if `spbeam.bad() == 1` (disabled).
+     * @dev Checks if `beam.bad() == 1` (disabled).
      *      The spell would revert if any of the following conditions holds:
-     *          1. SPBEAMMom is not a ward of SPBEAM
-     *          2. Call to SPBEAM `hop()` reverts (likely not a SPBEAM)
+     *          1. BEAMMom is not a ward of BEAM
+     *          2. Call to BEAM `hop()` reverts (likely not a BEAM)
      *      In both cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {
-        try spbeam.wards(address(spbeamMom)) returns (uint256 ward) {
-            // Ignore SPBEAM instances that have not relied on SPBEAMMom.
+        try beam.wards(address(beamMom)) returns (uint256 ward) {
+            // Ignore BEAM instances that have not relied on BEAMMom.
             if (ward == 0) {
                 return true;
             }
         } catch {
-            // If the call failed, it means the contract is most likely not a SPBEAM instance.
+            // If the call failed, it means the contract is most likely not a BEAM instance.
             return true;
         }
 
-        try spbeam.bad() returns (uint256 bad) {
+        try beam.bad() returns (uint256 bad) {
             return bad == 1;
         } catch {
-            // If the call failed, it means the contract is most likely not a SPBEAM instance.
+            // If the call failed, it means the contract is most likely not a BEAM instance.
             return true;
         }
     }
 }
+
+contract SingleBeamHaltFactory {
+    event Deploy(address beam, address spell);
+    address public immutable beamMom;
+
+    constructor(address _beamMom) {
+        beamMom = _beamMom;
+    }
+
+    function deploy(address beam) external returns (address spell) {
+        spell = address(new SingleBeamHaltSpell(beamMom, beam));
+        emit Deploy(beam, spell);
+    }
+}
+

@@ -49,7 +49,7 @@ contract SPBEAMHaltSpell is DssEmergencySpell {
      * @dev Checks if `spbeam.bad() == 1` (disabled).
      *      The spell would revert if any of the following conditions holds:
      *          1. SPBEAMMom is not a ward of SPBEAM
-     *          2. Call to SPBEAM `hop()` reverts (likely not a SPBEAM)
+     *          2. Call to SPBEAM `bad()` reverts (likely not a SPBEAM)
      *      In both cases, it returns `true`, meaning no further action can be taken at the moment.
      */
     function done() external view returns (bool) {

@@ -31,8 +31,8 @@ interface SPBEAMLike {
 contract SPBEAMHaltSpell is DssEmergencySpell {
     string public constant override description = "Emergency Spell | Halt SPBEAM";
 
-    SPBEAMMomLike public immutable spbeamMom = SPBEAMMomLike(_log.getAddress("SPBEAM_MOM"));
-    SPBEAMLike public immutable spbeam = SPBEAMLike(_log.getAddress("MCD_SP_BEAM"));
+    SPBEAMMomLike public immutable spbeamMom = SPBEAMMomLike(_log.getAddress("SP_BEAM_MOM"));
+    SPBEAMLike public immutable spbeam = SPBEAMLike(_log.getAddress("SP_BEAM"));
 
     event Halt();
 

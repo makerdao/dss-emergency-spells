@@ -23,6 +23,12 @@ contract MockSPBEAMBadReverts is MockAuth {
     }
 }
 
+contract mockSPBEAMDoesNotImplementWards {
+    function bad() external pure returns (uint256) {
+        return 0;
+    }
+}
+
 contract SPBEAMHaltSpellTest is DssTest {
     using stdStorage for StdStorage;
 
@@ -73,6 +79,12 @@ contract SPBEAMHaltSpellTest is DssTest {
 
     function testDoneWhenSPBEAMDoesNotImplementBad() public {
         vm.etch(address(spbeam), address(new MockAuth()).code);
+
+        assertTrue(spell.done(), "spell not done");
+    }
+
+    function testDoneWhenSPBEAMDoesNotImplementWards() public {
+        vm.etch(address(spbeam), address(new mockSPBEAMDoesNotImplementWards()).code);
 
         assertTrue(spell.done(), "spell not done");
     }

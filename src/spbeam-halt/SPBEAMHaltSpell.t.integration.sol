@@ -84,7 +84,7 @@ contract SPBEAMHaltSpellTest is DssTest {
     }
 
     function testDoneWhenSPBEAMDoesNotImplementWards() public {
-        vm.etch(address(spbeam), address(new mockSPBEAMDoesNotImplementWards()).code);
+        vm.etch(address(spbeam), address(new MockSPBEAMDoesNotImplementWards()).code);
 
         assertTrue(spell.done(), "spell not done");
     }

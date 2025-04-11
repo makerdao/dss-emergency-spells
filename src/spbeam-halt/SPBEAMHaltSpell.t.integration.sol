@@ -23,7 +23,7 @@ contract MockSPBEAMBadReverts is MockAuth {
     }
 }
 
-contract mockSPBEAMDoesNotImplementWards {
+contract MockSPBEAMDoesNotImplementWards {
     function bad() external pure returns (uint256) {
         return 0;
     }

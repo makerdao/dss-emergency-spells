@@ -40,13 +40,13 @@ contract SPBEAMHaltSpellTest is DssTest {
     SPBEAMHaltSpell spell;
 
     function setUp() public {
-        vm.createSelectFork("spbeam");
+        vm.createSelectFork("mainnet");
 
         dss = MCD.loadFromChainlog(CHAINLOG);
         MCD.giveAdminAccess(dss);
         chief = dss.chainlog.getAddress("MCD_ADM");
-        spbeamMom = dss.chainlog.getAddress("SP_BEAM_MOM");
-        spbeam = SPBEAMLike(dss.chainlog.getAddress("SP_BEAM"));
+        spbeamMom = dss.chainlog.getAddress("SPBEAM_MOM");
+        spbeam = SPBEAMLike(dss.chainlog.getAddress("MCD_SPBEAM"));
         spell = new SPBEAMHaltSpell();
 
         stdstore.target(chief).sig("hat()").checked_write(address(spell));

@@ -38,6 +38,12 @@ bespoke spell in record time.
 
 ### Standalone Spells
 
+#### `SPBEAMHaltSpell`
+
+```
+0xDECF4A7E4b9CAa3c3751D163866941a888618Ac0
+```
+
 #### `SplitterStopSpell`
 
 ```

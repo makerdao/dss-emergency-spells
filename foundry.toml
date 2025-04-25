@@ -6,6 +6,7 @@ libs = ["lib"]
 solc = '0.8.16'
 # Disables the optimizer, since gas cost is not a relevant factor.
 optimizer = false
+evm_version = "shanghai"
 
 fs_permissions = [
     { access = "read", path = "./out/" },

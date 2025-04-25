@@ -38,6 +38,12 @@ bespoke spell in record time.
 
 ### Standalone Spells
 
+#### `SPBEAMHaltSpell`
+
+```
+0xDECF4A7E4b9CAa3c3751D163866941a888618Ac0
+```
+
 #### `SplitterStopSpell`
 
 ```
@@ -166,6 +172,7 @@ bespoke spell in record time.
 | Stop `OSM`         | :white_check_mark: | :x:                | :white_check_mark: |
 | Halt `LitePSM`     | :white_check_mark: | :x:                | :x:                |
 | Stop `Splitter`    | :x:                | :x:                | :white_check_mark: |
+| Halt `SP-BEAM`     | :x:                | :x:                | :white_check_mark: |
 
 ### Wipe `line`
 
@@ -195,6 +202,10 @@ Halts swaps on the `PSM`, with optional direction (only `GEM` buys, only `GEM` s
 ### Stop `Splitter`
 
 Disables the smart burn engine.
+
+### Halt `SP-BEAM`
+
+Disables the SP-BEAM (Stability Parameter Bounded External Access Module) module, preventing direct rate changes by the module (rates can still be updated through the Spell process).
 
 ## Design
 
